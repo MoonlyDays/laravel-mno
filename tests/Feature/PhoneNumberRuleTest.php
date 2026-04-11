@@ -9,7 +9,7 @@ use libphonenumber\PhoneNumberType;
 use libphonenumber\PhoneNumberUtil;
 use MoonlyDays\MNO\Rules\PhoneNumberRule;
 
-function validate(array $data, array $rules): \Illuminate\Contracts\Validation\Validator
+function validate(array $data, array $rules): Illuminate\Contracts\Validation\Validator
 {
     return Validator::make($data, $rules);
 }
@@ -96,7 +96,7 @@ describe('PhoneNumberRule network code constraint', function (): void {
         $util = PhoneNumberUtil::getInstance();
         $example = $util->getExampleNumberForType('TZ', PhoneNumberType::MOBILE);
         $national = (string) $example->getNationalNumber();
-        $prefix = substr($national, 0, 2);
+        $prefix = mb_substr($national, 0, 2);
 
         $rule = (new PhoneNumberRule())->networkCodes($prefix);
 
@@ -113,7 +113,7 @@ describe('PhoneNumberRule network code constraint', function (): void {
         $util = PhoneNumberUtil::getInstance();
         $example = $util->getExampleNumberForType('TZ', PhoneNumberType::MOBILE);
         $national = (string) $example->getNationalNumber();
-        $prefix = substr($national, 0, 2);
+        $prefix = mb_substr($national, 0, 2);
 
         $rule = (new PhoneNumberRule())->networkCodes([$prefix, '00']);
 
@@ -126,7 +126,11 @@ describe('PhoneNumberRule::default', function (): void {
 
     it('produces a rule configured from the MNO service', function (): void {
         config()->set('mno.country', 'TZ');
-        config()->set('mno.network_codes', []);
+
+        $util = PhoneNumberUtil::getInstance();
+        $example = $util->getExampleNumberForType('TZ', PhoneNumberType::MOBILE);
+        $nationalPrefix = mb_substr((string) $example->getNationalNumber(), 0, 2);
+        config()->set('mno.network_codes', [$nationalPrefix]);
 
         $rule = PhoneNumberRule::default();
 

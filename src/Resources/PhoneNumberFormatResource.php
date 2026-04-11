@@ -27,7 +27,7 @@ class PhoneNumberFormatResource extends JsonResource
     {
         return [
             'countryCode' => $this->resource->countryCode(),
-            'country' => $this->resource->country(),
+            'country' => $this->resource->countryIsoCode(),
             'minLength' => $this->resource->minLength(),
             'maxLength' => $this->resource->maxLength(),
             'networkCodes' => $this->resource->networkCodes(),

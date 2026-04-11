@@ -6,7 +6,7 @@ namespace MoonlyDays\MNO\Casts;
 
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Database\Eloquent\Model;
-use MoonlyDays\MNO\PhoneNumber;
+use MoonlyDays\MNO\Values\PhoneNumber;
 
 /**
  * @implements CastsAttributes<PhoneNumber, string>

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use MoonlyDays\MNO\PhoneNumber;
 use MoonlyDays\MNO\Rules\PhoneNumberRule;
 use MoonlyDays\MNO\Tests\TestCase;
+use MoonlyDays\MNO\Values\PhoneNumber;
 
 uses(TestCase::class)->in('Unit', 'Feature');
 

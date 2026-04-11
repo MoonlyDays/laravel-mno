@@ -38,7 +38,6 @@ Set up the environment variables:
 MNO_NAME=MTS
 MNO_COUNTRY=RU
 MNO_NETWORK_CODES=910,911,912
-MNO_CARRIER_LOCALE=ru_RU
 MNO_PHONE_MIN_LENGTH=10
 MNO_PHONE_MAX_LENGTH=10
 ```
@@ -48,7 +47,6 @@ MNO_PHONE_MAX_LENGTH=10
 | `MNO_NAME`              | Name of the mobile network operator                                                |
 | `MNO_COUNTRY`           | ISO 3166-1 alpha-2 country code (e.g., `RU`, `TZ`)                                 |
 | `MNO_NETWORK_CODES`     | Comma-separated National Destination Code (NDC) prefixes for the operator          |
-| `MNO_CARRIER_LOCALE`    | Locale for libphonenumber carrier name lookups (IETF BCP 47)                       |
 | `MNO_PHONE_MIN_LENGTH`  | Minimum national number length (optional — inferred from libphonenumber metadata)  |
 | `MNO_PHONE_MAX_LENGTH`  | Maximum national number length (optional — inferred from libphonenumber metadata)  |
 
@@ -61,7 +59,7 @@ metadata for the configured country, walking the `number_types` priority list in
 ### Creating a PhoneNumber
 
 ```php
-use MoonlyDays\MNO\PhoneNumber;
+use MoonlyDays\MNO\Values\PhoneNumber;
 
 // Parse, throwing InvalidPhoneNumberException on failure
 $phone = PhoneNumber::from('+79101234567');
@@ -156,7 +154,7 @@ PhoneNumberRule::defaults(fn () => (new PhoneNumberRule())
 ```php
 use Illuminate\Database\Eloquent\Model;
 use MoonlyDays\MNO\Casts\PhoneNumberCast;
-use MoonlyDays\MNO\PhoneNumber;
+use MoonlyDays\MNO\Values\PhoneNumber;
 
 class User extends Model
 {
@@ -179,15 +177,16 @@ The cast accepts either a string or a `PhoneNumber` instance when setting, and a
 ```php
 use MoonlyDays\MNO\Facades\MNO;
 
-MNO::country();       // "RU"
-MNO::countryCode();   // 7
-MNO::name();          // "MTS"
-MNO::networkCodes();  // ["910", "911", "912"]
-MNO::carrierLocale(); // "ru_RU"
-MNO::minLength();     // 10
-MNO::maxLength();     // 10
-MNO::exampleNumber(); // PhoneNumber|null
-MNO::numberTypes();   // array<NumberType>
+MNO::countryIsoCode(); // "RU"
+MNO::country();        // Country instance for "RU"
+MNO::countryCode();    // 7
+MNO::carrierName();    // "MTS"
+MNO::carrier();        // Carrier instance for the configured MNO
+MNO::networkCodes();   // ["910", "911", "912"]
+MNO::minLength();      // 10
+MNO::maxLength();      // 10
+MNO::exampleNumber();  // PhoneNumber|null
+MNO::numberTypes();    // array<NumberType>
 ```
 
 The facade resolves the `MnoService` singleton, which is also bound to the container alias `mno` and can be
@@ -198,7 +197,7 @@ injected directly.
 `PhoneNumber` uses the `Macroable` trait, so you can add project-specific helpers:
 
 ```php
-use MoonlyDays\MNO\PhoneNumber;
+use MoonlyDays\MNO\Values\PhoneNumber;
 
 PhoneNumber::macro('isRussian', function (): bool {
     /** @var PhoneNumber $this */

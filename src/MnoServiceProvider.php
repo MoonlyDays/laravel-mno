@@ -7,6 +7,7 @@ namespace MoonlyDays\MNO;
 use Illuminate\Validation\Rule;
 use libphonenumber\PhoneNumberToCarrierMapper;
 use libphonenumber\PhoneNumberUtil;
+use MoonlyDays\MNO\Console\Commands\ShowCommand;
 use MoonlyDays\MNO\Rules\PhoneNumberRule;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -19,7 +20,8 @@ class MnoServiceProvider extends PackageServiceProvider
 
         $package
             ->name('mno')
-            ->hasConfigFile();
+            ->hasConfigFile()
+            ->hasCommand(ShowCommand::class);
 
         $this->app->singleton(MnoService::class);
         $this->app->alias(MnoService::class, 'mno');

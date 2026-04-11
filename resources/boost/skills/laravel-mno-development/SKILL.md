@@ -22,10 +22,10 @@ The core of the package. An immutable, immediately-validated phone number repres
 - `PhoneNumber::tryFrom(string $number, ?string $region = null): ?PhoneNumber` — returns `null` on failure. Use for user input.
 - `phoneNumber(string $number, ?string $region = null): PhoneNumber` — global helper, equivalent to `PhoneNumber::from()`.
 
-When `$region` is omitted, the configured country (`config('mno.country')`, via `MNO::country()`) is used as the default parse region.
+When `$region` is omitted, the configured country (`config('mno.country')`, via `MNO::countryIsoCode()`) is used as the default parse region.
 
 ```php
-use MoonlyDays\MNO\PhoneNumber;
+use MoonlyDays\MNO\Values\PhoneNumber;
 
 // Throws on invalid input
 $phone = PhoneNumber::from('+255712345678');
@@ -67,15 +67,16 @@ $phone = phoneNumber('+255712345678');
 ```php
 use MoonlyDays\MNO\Facades\MNO;
 
-MNO::country();       // "TZ" — configured ISO country code
-MNO::countryCode();   // 255 — calling code for configured country
-MNO::name();          // "Vodacom" — configured operator name
-MNO::networkCodes();  // ["71", "74", "75"] — configured NDC prefixes
-MNO::carrierLocale(); // "en_US" — locale for carrier name lookups
-MNO::minLength();     // 9 — minimum national number length
-MNO::maxLength();     // 9 — maximum national number length
-MNO::exampleNumber(); // PhoneNumber|null — example number for country
-MNO::numberTypes();   // [NumberType::Mobile, NumberType::General]
+MNO::countryIsoCode(); // "TZ" — configured ISO country code
+MNO::country();        // Country value object for configured ISO code
+MNO::countryCode();    // 255 — calling code for configured country
+MNO::carrierName();    // "Vodacom" — configured operator name
+MNO::carrier();        // Carrier value object for configured MNO
+MNO::networkCodes();   // ["71", "74", "75"] — configured NDC prefixes
+MNO::minLength();      // 9 — minimum national number length
+MNO::maxLength();      // 9 — maximum national number length
+MNO::exampleNumber();  // PhoneNumber|null — example number for country
+MNO::numberTypes();    // [NumberType::Mobile, NumberType::General]
 ```
 
 **Smart length inference:** When `mno.validation.min_length` or `mno.validation.max_length` are not explicitly configured, `MnoService` infers them from libphonenumber metadata. It iterates through configured `number_types` (default: Mobile, then General) and returns the length from the first type with a single unambiguous value. If ambiguous, it throws `PhoneNumberLengthException`. If `min_length` is not set, it falls back to `max_length`. The inferred length is cached for the lifetime of the singleton.
@@ -135,7 +136,7 @@ PhoneNumberRule::defaults(fn () => (new PhoneNumberRule())
 
 ```php
 use MoonlyDays\MNO\Casts\PhoneNumberCast;
-use MoonlyDays\MNO\PhoneNumber;
+use MoonlyDays\MNO\Values\PhoneNumber;
 
 class User extends Model
 {
@@ -195,7 +196,6 @@ Config file: `config/operator.php`. The service provider names the package `mno`
 | `name` | `MNO_NAME` | `string` | `""` | Operator name |
 | `country` | `MNO_COUNTRY` | `string` | `""` | ISO 3166-1 alpha-2 country code, used as default parse region |
 | `network_codes` | `MNO_NETWORK_CODES` | `array` | `[]` | Comma-separated NDC prefixes |
-| `carrier_locale` | `MNO_CARRIER_LOCALE` | `string` | `en_US` | IETF BCP 47 locale |
 | `validation.min_length` | `MNO_PHONE_MIN_LENGTH` | `int\|null` | `null` | Min national number length (inferred if null) |
 | `validation.max_length` | `MNO_PHONE_MAX_LENGTH` | `int\|null` | `null` | Max national number length (inferred if null) |
 | `validation.number_types` | — | `array` | `[Mobile, General]` | NumberType priority for length inference |

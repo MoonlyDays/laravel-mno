@@ -27,10 +27,9 @@ abstract class TestCase extends OrchestraTestCase
 
     protected function defineEnvironment($app): void
     {
-        $app['config']->set('mno.name', 'Test Operator');
+        $app['config']->set('mno.name', 'Vodacom');
         $app['config']->set('mno.country', 'TZ');
         $app['config']->set('mno.network_codes', []);
-        $app['config']->set('mno.carrier_locale', 'en_US');
         $app['config']->set('mno.validation.min_length', null);
         $app['config']->set('mno.validation.max_length', null);
         $app['config']->set('mno.validation.number_types', [

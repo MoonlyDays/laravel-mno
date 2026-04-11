@@ -10,7 +10,11 @@ use libphonenumber\PhoneNumberDesc;
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberUtil;
 use MoonlyDays\MNO\Enums\NumberType;
+use MoonlyDays\MNO\Exceptions\InvalidCarrierException;
 use MoonlyDays\MNO\Exceptions\PhoneNumberLengthException;
+use MoonlyDays\MNO\Values\Carrier;
+use MoonlyDays\MNO\Values\Country;
+use MoonlyDays\MNO\Values\PhoneNumber;
 
 class MnoService
 {
@@ -23,9 +27,36 @@ class MnoService
     /**
      * Get the configured country ISO code (e.g., "TZ").
      */
-    public function country(): string
+    public function countryIsoCode(): string
     {
         return config('mno.country', '');
+    }
+
+    /**
+     * Get the configured operator name.
+     */
+    public function carrierName(): string
+    {
+        return config('mno.name', '');
+    }
+
+    public function country(?string $code = null): Country
+    {
+        return Country::from($code ?? $this->countryIsoCode());
+    }
+
+    public function carrier(?string $country = null, ?string $name = null): Carrier
+    {
+        if ($country === null) {
+            $country = $this->countryIsoCode();
+            $name = $this->carrierName();
+        }
+
+        if (is_null($name)) {
+            throw InvalidCarrierException::missingArguments();
+        }
+
+        return $this->country($country)->carrier($name);
     }
 
     /**
@@ -33,15 +64,7 @@ class MnoService
      */
     public function countryCode(): int
     {
-        return $this->phoneNumberUtil->getCountryCodeForRegion($this->country());
-    }
-
-    /**
-     * Get the configured operator name.
-     */
-    public function name(): string
-    {
-        return config('mno.name', '');
+        return $this->country()->countryCode();
     }
 
     /**
@@ -51,15 +74,12 @@ class MnoService
      */
     public function networkCodes(): array
     {
-        return config('mno.network_codes', []);
-    }
+        $networkCodes = (array) config('mno.network_codes', []);
+        if ($networkCodes !== []) {
+            return $networkCodes;
+        }
 
-    /**
-     * Get the locale used for carrier name lookups.
-     */
-    public function carrierLocale(): string
-    {
-        return config('mno.carrier_locale', 'en_US');
+        return $this->carrier()->networkCodes();
     }
 
     /**
@@ -105,7 +125,7 @@ class MnoService
      */
     public function exampleNumber(): ?PhoneNumber
     {
-        $example = $this->phoneNumberUtil->getExampleNumber($this->country());
+        $example = $this->phoneNumberUtil->getExampleNumber($this->countryIsoCode());
 
         if (! $example instanceof BasePhoneNumber) {
             return null;
@@ -146,7 +166,7 @@ class MnoService
             return $this->cachedInferredLength;
         }
 
-        $country = $this->country();
+        $country = $this->countryIsoCode();
         if (! $country) {
             throw PhoneNumberLengthException::missingCountry();
         }

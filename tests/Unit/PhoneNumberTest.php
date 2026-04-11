@@ -6,7 +6,7 @@ use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberType;
 use libphonenumber\PhoneNumberUtil;
 use MoonlyDays\MNO\Exceptions\InvalidPhoneNumberException;
-use MoonlyDays\MNO\PhoneNumber;
+use MoonlyDays\MNO\Values\PhoneNumber;
 
 /**
  * Helper: grab a known-valid mobile number (E.164) for a region from libphonenumber.
@@ -130,7 +130,7 @@ describe('PhoneNumber decomposition', function (): void {
         $phone = PhoneNumber::from(mobileExampleFor('TZ'));
 
         expect($phone->toPhoneNumber())
-            ->toBeInstanceOf(\libphonenumber\PhoneNumber::class);
+            ->toBeInstanceOf(libphonenumber\PhoneNumber::class);
     });
 });
 
@@ -151,10 +151,10 @@ describe('PhoneNumber::equals', function (): void {
 
 describe('PhoneNumber macroable', function (): void {
     it('supports registering and calling macros', function (): void {
-        PhoneNumber::macro('shout', fn (): string => strtoupper($this->e164()));
+        PhoneNumber::macro('shout', fn (): string => mb_strtoupper($this->e164()));
 
         $phone = PhoneNumber::from(mobileExampleFor('TZ'));
 
-        expect($phone->shout())->toBe(strtoupper($phone->e164()));
+        expect($phone->shout())->toBe(mb_strtoupper($phone->e164()));
     });
 });
