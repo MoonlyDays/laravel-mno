@@ -63,7 +63,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "MnoServiceProvider"
+        "MoonlyDays\\MNO\\MnoServiceProvider"
       ],
       "aliases": {
         "MNO": "MoonlyDays\\MNO\\Facades\\MNO"
