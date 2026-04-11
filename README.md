@@ -1,5 +1,12 @@
 # Laravel MNO
 
+[![Tests](https://img.shields.io/github/actions/workflow/status/MoonlyDays/laravel-mno/tests.yml?branch=main&label=tests&style=flat-square&logo=github)](https://github.com/MoonlyDays/laravel-mno/actions/workflows/tests.yml)
+[![Latest Version](https://img.shields.io/packagist/v/moonlydays/laravel-mno.svg?style=flat-square&logo=packagist&logoColor=white)](https://packagist.org/packages/moonlydays/laravel-mno)
+[![Total Downloads](https://img.shields.io/packagist/dt/moonlydays/laravel-mno.svg?style=flat-square&logo=packagist&logoColor=white)](https://packagist.org/packages/moonlydays/laravel-mno)
+[![PHP Version](https://img.shields.io/packagist/php-v/moonlydays/laravel-mno.svg?style=flat-square&logo=php&logoColor=white)](https://packagist.org/packages/moonlydays/laravel-mno)
+[![Laravel](https://img.shields.io/badge/Laravel-11%20%7C%2012%20%7C%2013-FF2D20?style=flat-square&logo=laravel&logoColor=white)](https://laravel.com)
+[![License](https://img.shields.io/packagist/l/moonlydays/laravel-mno.svg?style=flat-square)](LICENSE)
+
 Laravel package for validating, normalizing, and working with MSISDN phone numbers tied to a single Mobile Network
 Operator. A wrapper around [`giggsey/libphonenumber-for-php`](https://github.com/giggsey/libphonenumber-for-php) with
 integration into Laravel's validation system, Eloquent casts, and facades.
