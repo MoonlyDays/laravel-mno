@@ -1,7 +1,6 @@
 {
   "name": "moonlydays/laravel-mno",
   "description": "Utilities for configuring interactions with operator phone numbers and subscribers.",
-  "version": "1.0.0",
   "keywords": [
     "laravel",
     "operator",
@@ -63,7 +62,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "MnoServiceProvider"
+        "MoonlyDays\\MNO\\MnoServiceProvider"
       ],
       "aliases": {
         "MNO": "MoonlyDays\\MNO\\Facades\\MNO"
