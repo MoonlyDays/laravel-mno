@@ -167,6 +167,10 @@ class PhoneNumber implements Castable, JsonSerializable, Stringable
         return $this->e164() === $other->e164();
     }
 
+    /**
+     * Serialize to JSON as the E.164 form, so API responses and Eloquent
+     * JSON casts produce a canonical, region-independent string.
+     */
     public function jsonSerialize(): string
     {
         return $this->e164();

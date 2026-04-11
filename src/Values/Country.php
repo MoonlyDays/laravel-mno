@@ -28,8 +28,6 @@ class Country implements Stringable
 
     protected PhoneNumberUtil $phoneNumberUtil;
 
-    protected ?array $cachedPossibleLengths = null;
-
     /**
      * Memoized carriers, keyed by display name. Null until first load.
      *
@@ -166,14 +164,34 @@ class Country implements Stringable
         );
     }
 
-    public function minPhoneNumberLength(): int
+    /**
+     * Smallest national number length libphonenumber advertises for this
+     * region, resolved from the first `$numberTypes` descriptor that has
+     * usable metadata.
+     *
+     * @param  array<NumberType>  $numberTypes  priority-ordered list; the first
+     *                                          type with metadata wins, remaining types act as fallbacks.
+     *
+     * @throws PhoneNumberLengthException
+     */
+    public function minPhoneNumberLength(array $numberTypes): int
     {
-        return min($this->possiblePhoneNumberLengths());
+        return min($this->possiblePhoneNumberLengths($numberTypes));
     }
 
-    public function maxPhoneNumberLength(): int
+    /**
+     * Largest national number length libphonenumber advertises for this
+     * region, resolved from the first `$numberTypes` descriptor that has
+     * usable metadata.
+     *
+     * @param  array<NumberType>  $numberTypes  priority-ordered list; the first
+     *                                          type with metadata wins, remaining types act as fallbacks.
+     *
+     * @throws PhoneNumberLengthException
+     */
+    public function maxPhoneNumberLength(array $numberTypes): int
     {
-        return max($this->possiblePhoneNumberLengths());
+        return max($this->possiblePhoneNumberLengths($numberTypes));
     }
 
     /**
@@ -195,39 +213,46 @@ class Country implements Stringable
         return $this->isoCode === $other->isoCode;
     }
 
-    public function possiblePhoneNumberLengths(): array
+    /**
+     * Resolve the possible national-number lengths libphonenumber advertises
+     * for this region. The given `$numberTypes` list is walked in order and
+     * the first descriptor that produces usable lengths wins — remaining
+     * entries act as fallbacks for regions where the preferred type has no
+     * metadata.
+     *
+     * @param  array<NumberType>  $numberTypes  priority-ordered list of
+     *                                          NumberType descriptors to consult.
+     * @return array<int>
+     *
+     * @throws PhoneNumberLengthException if libphonenumber has no metadata
+     *                                    for this region, or none of the given types expose usable lengths.
+     */
+    public function possiblePhoneNumberLengths(array $numberTypes): array
     {
-        if ($this->cachedPossibleLengths !== null) {
-            return $this->cachedPossibleLengths;
-        }
-
         $metadata = $this->phoneNumberUtil->getMetadataForRegion($this->isoCode);
         if (! $metadata instanceof PhoneMetadata) {
-            throw PhoneNumberLengthException::missingMetadata();
+            throw PhoneNumberLengthException::missingMetadata($this->isoCode);
         }
 
-        $lengths = [];
-
-        foreach (NumberType::cases() as $numberType) {
+        foreach ($numberTypes as $numberType) {
             $phoneNumberDesc = $numberType->descriptionFrom($metadata);
             if (! $phoneNumberDesc instanceof PhoneNumberDesc) {
                 continue;
             }
 
-            $lengths = array_merge($lengths, $phoneNumberDesc->getPossibleLength());
+            $lengths = collect($phoneNumberDesc->getPossibleLength())
+                ->filter(fn (int $length) => $length > 0)
+                ->values()
+                ->all();
+
+            if ($lengths === []) {
+                continue;
+            }
+
+            return $lengths;
         }
 
-        $lengths = collect($lengths)
-            ->unique()
-            ->filter(fn (int $length) => $length > 0)
-            ->values()
-            ->all();
-
-        if ($lengths === []) {
-            throw PhoneNumberLengthException::undefined($this->isoCode);
-        }
-
-        return $this->cachedPossibleLengths = $lengths;
+        throw PhoneNumberLengthException::undefined($this->isoCode);
     }
 
     /**

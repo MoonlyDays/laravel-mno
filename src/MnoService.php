@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace MoonlyDays\MNO;
 
+use Illuminate\Config\Repository;
 use libphonenumber\PhoneNumber as BasePhoneNumber;
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberUtil;
+use MoonlyDays\MNO\Enums\NumberType;
 use MoonlyDays\MNO\Exceptions\InvalidCarrierException;
 use MoonlyDays\MNO\Exceptions\PhoneNumberLengthException;
 use MoonlyDays\MNO\Values\Carrier;
@@ -15,16 +17,38 @@ use MoonlyDays\MNO\Values\PhoneNumber;
 
 class MnoService
 {
+    protected string $countryIsoCode;
+
+    protected string $carrierName;
+
+    protected mixed $minLength;
+
+    protected mixed $maxLength;
+
+    /** @var array<NumberType> */
+    protected array $numberTypes;
+
+    /** @var array<string> */
+    protected array $networkCodes;
+
     public function __construct(
         protected PhoneNumberUtil $phoneNumberUtil,
-    ) {}
+        protected Repository $config,
+    ) {
+        $this->countryIsoCode = $this->config->string('mno.country');
+        $this->carrierName = $this->config->string('mno.name');
+        $this->networkCodes = $this->config->array('mno.network_codes');
+        $this->minLength = $this->config->get('mno.min_length');
+        $this->maxLength = $this->config->get('mno.max_length');
+        $this->numberTypes = $this->config->array('mno.number_types');
+    }
 
     /**
      * Get the configured country ISO code (e.g., "TZ").
      */
     public function countryIsoCode(): string
     {
-        return config('mno.country', '');
+        return $this->countryIsoCode;
     }
 
     /**
@@ -32,7 +56,7 @@ class MnoService
      */
     public function carrierName(): string
     {
-        return config('mno.name', '');
+        return $this->carrierName;
     }
 
     public function country(?string $code = null): Country
@@ -69,46 +93,62 @@ class MnoService
      */
     public function networkCodes(): array
     {
-        $networkCodes = (array) config('mno.network_codes', []);
-        if ($networkCodes !== []) {
-            return $networkCodes;
+        if ($this->networkCodes !== []) {
+            return $this->networkCodes;
         }
 
         return $this->carrier()->networkCodes();
     }
 
     /**
-     * Get the minimum national number length for validation.
+     * Get the configured number types used when inferring possible
+     * national-number lengths from libphonenumber metadata.
      *
-     * Returns the configured value if explicitly set, otherwise
-     * falls back to maxLength().
-     *
-     * @throws PhoneNumberLengthException
+     * @return array<NumberType>
      */
-    public function minLength(): int
+    public function numberTypes(): array
     {
-        $length = config('mno.min_length');
-
-        return $length === null
-            ? $this->country()->minPhoneNumberLength()
-            : (int) $length;
+        return $this->numberTypes;
     }
 
     /**
-     * Get the maximum national number length for validation.
+     * Minimum national number length used for validation.
      *
-     * Returns the configured value if set, otherwise infers from
-     * libphonenumber's mobile metadata for the configured country.
+     * Returns `mno.min_length` when explicitly configured; otherwise
+     * delegates to {@see Country::minPhoneNumberLength()} for the
+     * configured country, which infers the value from libphonenumber
+     * metadata.
      *
-     * @throws PhoneNumberLengthException
+     * @throws PhoneNumberLengthException when inference is required but
+     *                                    libphonenumber has no usable metadata for the country.
+     */
+    public function minLength(): int
+    {
+        if (is_numeric($this->minLength)) {
+            return (int) $this->minLength;
+        }
+
+        return $this->country()->minPhoneNumberLength($this->numberTypes());
+    }
+
+    /**
+     * Maximum national number length used for validation.
+     *
+     * Returns `mno.max_length` when explicitly configured; otherwise
+     * delegates to {@see Country::maxPhoneNumberLength()} for the
+     * configured country, which infers the value from libphonenumber
+     * metadata.
+     *
+     * @throws PhoneNumberLengthException when inference is required but
+     *                                    libphonenumber has no usable metadata for the country.
      */
     public function maxLength(): int
     {
-        $length = config('mno.max_length');
+        if (is_numeric($this->maxLength)) {
+            return (int) $this->maxLength;
+        }
 
-        return $length === null
-            ? $this->country()->maxPhoneNumberLength()
-            : (int) $length;
+        return $this->country()->maxPhoneNumberLength($this->numberTypes());
     }
 
     /**
@@ -125,5 +165,19 @@ class MnoService
         return PhoneNumber::from(
             $this->phoneNumberUtil->format($example, PhoneNumberFormat::E164),
         );
+    }
+
+    /**
+     * Coerce a raw config value (string from env, int from runtime overrides,
+     * or null) into an int or null. Empty strings become null so that an
+     * unset `MNO_MIN_LENGTH=` env line doesn't pin the bound at zero.
+     */
+    protected function nullableInt(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return (int) $value;
     }
 }
