@@ -35,6 +35,7 @@ class ShowCommand extends Command
         $this->components->info("Country: {$country->isoCode()}");
 
         $this->components->twoColumnDetail('ISO Code', $country->isoCode());
+        $this->components->twoColumnDetail('Name', $country->name());
         $this->components->twoColumnDetail('Carrier Count', count($country->carriers()));
         $this->components->twoColumnDetail('Country Code', '+'.$country->countryCode());
         $this->components->twoColumnDetail('Mobile Network Portability', $country->isMobileNumberPortable() ? '<fg=green>true</>' : '<fg=red>false</>');
@@ -63,6 +64,7 @@ class ShowCommand extends Command
 
         $this->components->twoColumnDetail('Name', $carrier->name());
         $this->components->twoColumnDetail('Country ISO Code', $country->isoCode());
+        $this->components->twoColumnDetail('Country Name', $country->name());
         $this->components->twoColumnDetail('Network Codes', $carrier->networkCodeCount());
         $this->components->twoColumnDetail('Min Length', $minLength);
         $this->components->twoColumnDetail('Max Length', $maxLength);

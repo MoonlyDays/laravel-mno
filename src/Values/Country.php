@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MoonlyDays\MNO\Values;
 
+use Giggsey\Locale\Locale;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
 use Illuminate\Support\Traits\Tappable;
@@ -90,6 +91,22 @@ class Country implements Stringable
     public function countryCode(): int
     {
         return $this->phoneNumberUtil->getCountryCodeForRegion($this->isoCode);
+    }
+
+    /**
+     * Resolve the localized display name for this region (e.g., "Tanzania",
+     * "Tanzanie", "タンザニア") from the CLDR data bundled with `giggsey/locale`.
+     *
+     * Pure-PHP — does not require ext-intl. Returns an empty string if neither
+     * the requested `$locale` nor any of its parent locales has a translation
+     * for this region.
+     *
+     * @param  string  $locale  BCP 47 locale tag used for the display name
+     *                          (e.g., "en", "fr", "zh-Hans"). Defaults to "en".
+     */
+    public function name(string $locale = 'en'): string
+    {
+        return Locale::getDisplayRegion('-'.$this->isoCode, $locale);
     }
 
     /**
