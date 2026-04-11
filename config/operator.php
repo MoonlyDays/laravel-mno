@@ -62,7 +62,7 @@ return [
     | Validation
     |--------------------------------------------------------------------------
     |
-    | Default constraints applied when using MsisdnRule::default(). When
+    | Default constraints applied when using PhoneNumberRule::default(). When
     | set to null, the length is inferred from libphonenumber metadata
     | for the configured country. The number_types array controls which
     | description types are checked and in what order. The first type

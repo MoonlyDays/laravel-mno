@@ -34,7 +34,7 @@ class PhoneNumber implements Stringable
     }
 
     /**
-     * Parse the given number into an Msisdn value object.
+     * Parse the given number into a PhoneNumber value object.
      *
      * @throws InvalidPhoneNumberException
      */
@@ -152,7 +152,7 @@ class PhoneNumber implements Stringable
     }
 
     /**
-     * Determine if two Msisdn instances represent the same number.
+     * Determine if two PhoneNumber instances represent the same number.
      */
     public function equals(self $other): bool
     {

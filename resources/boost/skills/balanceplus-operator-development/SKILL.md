@@ -1,41 +1,41 @@
 ---
 name: balanceplus-operator-development
 description: >-
-  Use this skill when working with phone number fields, MSISDN validation rules,
-  MsisdnCast, Subscriber components, or the Operator facade. Contains full API
+  Use this skill when working with phone number fields, PhoneNumberRule validation,
+  PhoneNumberCast, the MNO facade, or PhoneNumberFormatResource. Contains full API
   signatures, code examples, and configuration reference.
 ---
 
-# balanceplus/operator
+# moonlydays/laravel-mno
 
-Laravel package for validating, normalizing, and working with MSISDN (phone numbers). Wraps `giggsey/libphonenumber-for-php` and integrates with Laravel validation, Eloquent casting, and facades. Requires PHP 8.2+ and Laravel 11/12/13.
+Laravel package for validating, normalizing, and working with phone numbers for Mobile Network Operators (MNOs). Wraps `giggsey/libphonenumber-for-php` and integrates with Laravel validation, Eloquent casting, and facades. Requires PHP 8.2+ and Laravel 11/12/13.
 
-Namespace: `BalancePlus\Operator`
+Namespace: `MoonlyDays\MNO`
 
-## Msisdn Value Object
+## PhoneNumber Value Object
 
 The core of the package. An immutable, immediately-validated phone number representation.
 
 **Creating instances:**
 
-- `Msisdn::from(string $number, ?string $region = null): Msisdn` — parse and validate. Throws `InvalidMsisdnException` on failure. Use when input is trusted or you want to fail loudly.
-- `Msisdn::tryFrom(string $number, ?string $region = null): ?Msisdn` — returns `null` on failure. Use for user input.
-- `msisdn(string $number, ?string $region = null): Msisdn` — global helper, equivalent to `Msisdn::from()`.
+- `PhoneNumber::from(string $number, ?string $region = null): PhoneNumber` — parse and validate. Throws `InvalidPhoneNumberException` on failure. Use when input is trusted or you want to fail loudly.
+- `PhoneNumber::tryFrom(string $number, ?string $region = null): ?PhoneNumber` — returns `null` on failure. Use for user input.
+- `phoneNumber(string $number, ?string $region = null): PhoneNumber` — global helper, equivalent to `PhoneNumber::from()`.
 
-When `$region` is omitted, the configured country (`config('operator.country')`) is used as default.
+When `$region` is omitted, the configured country (`config('mno.country')`, via `MNO::country()`) is used as the default parse region.
 
 ```php
-use BalancePlus\Operator\PhoneNumber;
+use MoonlyDays\MNO\PhoneNumber;
 
 // Throws on invalid input
-$msisdn = PhoneNumber::from('+255712345678');
-$msisdn = PhoneNumber::from('0712345678', 'TZ');
+$phone = PhoneNumber::from('+255712345678');
+$phone = PhoneNumber::from('0712345678', 'TZ');
 
 // Returns null on invalid input — use for user input
-$msisdn = PhoneNumber::tryFrom($request->input('phone'));
+$phone = PhoneNumber::tryFrom($request->input('phone'));
 
 // Global helper
-$msisdn = msisdn('+255712345678');
+$phone = phoneNumber('+255712345678');
 ```
 
 **Formatting outputs:**
@@ -55,42 +55,42 @@ $msisdn = msisdn('+255712345678');
 
 **Other methods:**
 
-- `toPhoneNumber(): PhoneNumber` — underlying libphonenumber instance
-- `equals(Msisdn $other): bool` — comparison by E.164
+- `toPhoneNumber(): libphonenumber\PhoneNumber` — underlying libphonenumber instance
+- `equals(PhoneNumber $other): bool` — comparison by E.164
 
-Msisdn uses `Macroable` and `Tappable` traits.
+`PhoneNumber` uses `Macroable` and `Tappable` traits.
 
-## Operator Facade and OperatorService
+## MNO Facade and MnoService
 
-`OperatorService` is a singleton registered with alias `msisdn`. Access it via the `Operator` facade.
+`MnoService` is a singleton registered by `MnoServiceProvider` with the container alias `mno`. Access it via the `MNO` facade.
 
 ```php
-use BalancePlus\Operator\Facades\Operator;
+use MoonlyDays\MNO\Facades\MNO;
 
-Operator::country();       // "TZ" — configured ISO country code
-Operator::countryCode();   // 255 — calling code for configured country
-Operator::name();          // "Vodacom" — configured operator name
-Operator::networkCodes();  // ["71", "74", "75"] — configured NDC prefixes
-Operator::carrierLocale(); // "en_US" — locale for carrier name lookups
-Operator::minLength();     // 9 — minimum national number length
-Operator::maxLength();     // 9 — maximum national number length
-Operator::exampleNumber(); // Msisdn|null — example number for country
-Operator::numberTypes();   // [NumberType::Mobile, NumberType::General]
+MNO::country();       // "TZ" — configured ISO country code
+MNO::countryCode();   // 255 — calling code for configured country
+MNO::name();          // "Vodacom" — configured operator name
+MNO::networkCodes();  // ["71", "74", "75"] — configured NDC prefixes
+MNO::carrierLocale(); // "en_US" — locale for carrier name lookups
+MNO::minLength();     // 9 — minimum national number length
+MNO::maxLength();     // 9 — maximum national number length
+MNO::exampleNumber(); // PhoneNumber|null — example number for country
+MNO::numberTypes();   // [NumberType::Mobile, NumberType::General]
 ```
 
-**Smart length inference:** When `min_length` or `max_length` are not explicitly configured, `OperatorService` infers them from libphonenumber metadata. It iterates through configured `number_types` (default: Mobile, then General) and returns the length from the first type with a single unambiguous value. If ambiguous, it throws `MsisdnLengthException`. If `min_length` is not set, it falls back to `max_length`.
+**Smart length inference:** When `mno.validation.min_length` or `mno.validation.max_length` are not explicitly configured, `MnoService` infers them from libphonenumber metadata. It iterates through configured `number_types` (default: Mobile, then General) and returns the length from the first type with a single unambiguous value. If ambiguous, it throws `PhoneNumberLengthException`. If `min_length` is not set, it falls back to `max_length`. The inferred length is cached for the lifetime of the singleton.
 
 ## Validation Rule
 
-`MsisdnRule` implements Laravel's `ValidationRule` interface with a fluent API.
+`PhoneNumberRule` implements Laravel's `ValidationRule` interface with a fluent API.
 
 ```php
 use Illuminate\Validation\Rule;
-use BalancePlus\Operator\Rules\PhoneNumberRule;
+use MoonlyDays\MNO\Rules\PhoneNumberRule;
 
 // Default rule — pre-configured from config (country, networkCodes, min/maxLength)
 $request->validate([
-    'phone' => ['required', Rule::msisdn()],
+    'phone' => ['required', Rule::phoneNumber()],
 ]);
 
 // Custom rule with fluent API
@@ -113,28 +113,29 @@ $request->validate([
 - `minLength(int $length): static` — minimum national number length
 - `maxLength(int $length): static` — maximum national number length
 
-**`MsisdnRule::default()`** creates a rule pre-configured from `config/operator.php` (country, networkCodes, minLength, maxLength).
+**`PhoneNumberRule::default()`** creates a rule pre-configured from the `mno.*` config (country, networkCodes, minLength, maxLength).
 
-**`MsisdnRule::defaults(?callable $resolver)`** sets a custom resolver for `default()`:
+**`PhoneNumberRule::defaults(?callable $resolver)`** sets a custom resolver for `default()`:
 
 ```php
-MsisdnRule::defaults(fn () => (new MsisdnRule())
+PhoneNumberRule::defaults(fn () => (new PhoneNumberRule())
     ->country('US', 'CA')
     ->minLength(10)
     ->maxLength(10)
 );
 ```
 
-**Validation order:** parses as MSISDN, checks country, checks min length, checks max length, checks network code prefix.
+**Validation order:** parse as phone number, check country, check min length, check max length, check network code prefix.
 
 **Validation error keys:** `validation.msisdn.invalid`, `validation.msisdn.country`, `validation.msisdn.min_length`, `validation.msisdn.max_length`, `validation.msisdn.network_code`.
 
 ## Eloquent Cast
 
-`MsisdnCast` stores phone numbers as E.164 in the database and hydrates them as `Msisdn` instances.
+`PhoneNumberCast` stores phone numbers as E.164 in the database and hydrates them as `PhoneNumber` instances.
 
 ```php
-use BalancePlus\Operator\Casts\PhoneNumberCast;
+use MoonlyDays\MNO\Casts\PhoneNumberCast;
+use MoonlyDays\MNO\PhoneNumber;
 
 class User extends Model
 {
@@ -143,61 +144,24 @@ class User extends Model
     ];
 }
 
-// Setting — accepts string or Msisdn, stores as E.164
+// Setting — accepts string or PhoneNumber, stores as E.164
 $user->phone = '0712345678';
-$user->phone = Msisdn::from('+255712345678');
+$user->phone = PhoneNumber::from('+255712345678');
 $user->save(); // Stored as "+255712345678"
 
-// Getting — returns Msisdn instance (or null)
+// Getting — returns PhoneNumber instance (or null)
 $user->phone->national();    // "0712 345 678"
 $user->phone->countryIso();  // "TZ"
 ```
 
 Always stores as E.164. Returns `null` when the database value is `null`.
 
-## Subscriber and Components
-
-`Subscriber` wraps an `Msisdn` and provides lazy-loaded, cacheable components via the `HasComponents` trait.
-
-```php
-use BalancePlus\Operator\Subscriber;
-use BalancePlus\Operator\PhoneNumber;
-
-// Register components globally (callable or class string)
-Subscriber::registerComponent('balance', fn (Subscriber $s) => fetchBalance($s->msisdn()));
-Subscriber::registerComponent('profile', ProfileComponent::class);
-
-$subscriber = new Subscriber(PhoneNumber::from('+255712345678'));
-
-// Lazy-load on demand (resolved only when accessed, then cached)
-$balance = $subscriber->component('balance');
-
-// Eager-load multiple components
-$subscriber->load('balance', 'profile');
-
-// Load only if not already loaded
-$subscriber->loadMissing('balance');
-
-// Check/get cached value
-if ($subscriber->componentLoaded('balance')) {
-    $cached = $subscriber->loadedComponent('balance');
-}
-```
-
-**Component name normalization:** When registering a class string, the name is derived automatically — the class basename has its `Component` suffix stripped and is converted to kebab-case (e.g., `BalanceComponent` becomes `balance`, `AccountProfileComponent` becomes `account-profile`).
-
-**DI resolution:** When a class string is registered, it is resolved via the Laravel container with the `Subscriber` instance passed as a named constructor parameter (camelCase of the owner class basename, i.e., `$subscriber`).
-
-Throws `ComponentNotFoundException` if the component is not registered.
-
-Subscriber uses `Conditionable`, `Macroable`, and `Tappable` traits.
-
-## MsisdnFormatResource
+## PhoneNumberFormatResource
 
 JSON API resource for exposing operator format configuration to frontends or external APIs:
 
 ```php
-use BalancePlus\Operator\Resources\PhoneNumberFormatResource;
+use MoonlyDays\MNO\Resources\PhoneNumberFormatResource;
 
 // In a controller
 return PhoneNumberFormatResource::make();
@@ -212,9 +176,11 @@ return PhoneNumberFormatResource::make();
 // }
 ```
 
+The resource is constructed with an injected `MnoService` — `::make()` resolves it from the container.
+
 ## NumberType Enum
 
-`BalancePlus\Operator\Enums\NumberType` maps phone number types to libphonenumber metadata descriptors. Used by `OperatorService` for length inference.
+`MoonlyDays\MNO\Enums\NumberType` maps phone number types to libphonenumber metadata descriptors. Used by `MnoService` for length inference.
 
 Cases: `Mobile`, `FixedLine`, `General`, `TollFree`, `PremiumRate`, `SharedCost`, `Voip`, `PersonalNumber`, `Pager`, `Uan`, `Voicemail`.
 
@@ -222,29 +188,27 @@ Key method: `descriptionFrom(PhoneMetadata $metadata): ?PhoneNumberDesc`.
 
 ## Configuration
 
-Config file: `config/operator.php` (publishable via `operator-config` tag).
+Config file: `config/operator.php`. The service provider names the package `mno`, so keys are accessed under the `mno.*` config namespace (e.g., `config('mno.country')`).
 
 | Config Key | Env Variable | Type | Default | Purpose |
 |---|---|---|---|---|
-| `name` | `OPERATOR_NAME` | `string` | `""` | Operator name |
-| `country` | `OPERATOR_COUNTRY` | `string` | `""` | ISO 3166-1 alpha-2 country code, used as default parse region |
-| `network_codes` | `OPERATOR_NETWORK_CODES` | `array` | `[]` | Comma-separated NDC prefixes |
-| `carrier_locale` | `OPERATOR_CARRIER_LOCALE` | `string` | `en_US` | IETF BCP 47 locale |
-| `validation.min_length` | `OPERATOR_MSISDN_MIN_LENGTH` | `int\|null` | `null` | Min national number length (inferred if null) |
-| `validation.max_length` | `OPERATOR_MSISDN_MAX_LENGTH` | `int\|null` | `null` | Max national number length (inferred if null) |
+| `name` | `MNO_NAME` | `string` | `""` | Operator name |
+| `country` | `MNO_COUNTRY` | `string` | `""` | ISO 3166-1 alpha-2 country code, used as default parse region |
+| `network_codes` | `MNO_NETWORK_CODES` | `array` | `[]` | Comma-separated NDC prefixes |
+| `carrier_locale` | `MNO_CARRIER_LOCALE` | `string` | `en_US` | IETF BCP 47 locale |
+| `validation.min_length` | `MNO_PHONE_MIN_LENGTH` | `int\|null` | `null` | Min national number length (inferred if null) |
+| `validation.max_length` | `MNO_PHONE_MAX_LENGTH` | `int\|null` | `null` | Max national number length (inferred if null) |
 | `validation.number_types` | — | `array` | `[Mobile, General]` | NumberType priority for length inference |
 
 ## Exceptions
 
-- `InvalidMsisdnException` (extends `InvalidArgumentException`) — thrown by `Msisdn::from()` when parsing or validation fails. Factory: `InvalidMsisdnException::forNumber(string $number, ?Throwable $previous = null)`.
-- `MsisdnLengthException` (extends `RuntimeException`) — thrown by `OperatorService::maxLength()` during length inference. Factories: `ambiguous(string $country, array $lengths)`, `missingCountry()`, `missingMetadata(string $country)`.
-- `ComponentNotFoundException` (extends `RuntimeException`) — thrown by `HasComponents::component()` when a component is not registered. Factory: `ComponentNotFoundException::named(string $name)`.
+- `InvalidPhoneNumberException` (extends `InvalidArgumentException`) — thrown by `PhoneNumber::from()` when parsing or validation fails. Factory: `InvalidPhoneNumberException::forNumber(string $number, ?Throwable $previous = null)`.
+- `PhoneNumberLengthException` (extends `RuntimeException`) — thrown by `MnoService::maxLength()` during length inference. Factories: `ambiguous(string $country, array $lengths)`, `missingCountry()`, `missingMetadata(string $country)`.
 
 ## Important Patterns
 
-- Always use `Msisdn::tryFrom()` for user-provided input, `Msisdn::from()` when the source is trusted.
-- Always store phone numbers in E.164 format in the database. Use `MsisdnCast` for automatic handling.
-- Length inference requires a configured country (`operator.country`). Without it, `MsisdnLengthException` is thrown.
-- Component names are auto-normalized: `MyBalanceComponent` class registers as `my-balance`.
-- `Rule::msisdn()` is a macro registered by the service provider — equivalent to `MsisdnRule::default()`.
-- Msisdn instances are immutable. There is no way to modify a parsed number; create a new one instead.
+- Always use `PhoneNumber::tryFrom()` for user-provided input, `PhoneNumber::from()` when the source is trusted.
+- Always store phone numbers in E.164 format in the database. Use `PhoneNumberCast` for automatic handling.
+- Length inference requires a configured country (`mno.country`). Without it, `PhoneNumberLengthException` is thrown.
+- `Rule::phoneNumber()` is a macro registered by the service provider — equivalent to `PhoneNumberRule::default()`.
+- `PhoneNumber` instances are immutable. There is no way to modify a parsed number; create a new one instead.

@@ -14,7 +14,7 @@ use MoonlyDays\MNO\PhoneNumber;
 class PhoneNumberCast implements CastsAttributes
 {
     /**
-     * Cast the given value to a Msisdn value object.
+     * Cast the given value to a PhoneNumber value object.
      */
     public function get(Model $model, string $key, mixed $value, array $attributes): ?PhoneNumber
     {
