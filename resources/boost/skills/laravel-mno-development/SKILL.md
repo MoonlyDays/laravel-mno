@@ -1,5 +1,5 @@
 ---
-name: balanceplus-operator-development
+name: laravel-mno-development
 description: >-
   Use this skill when working with phone number fields, PhoneNumberRule validation,
   PhoneNumberCast, the MNO facade, or PhoneNumberFormatResource. Contains full API

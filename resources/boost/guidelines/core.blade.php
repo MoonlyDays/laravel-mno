@@ -2,7 +2,7 @@
 
 Phone number parsing, validation, and normalization for Laravel MNOs. Namespace: `MoonlyDays\MNO`.
 
-**When to reference the skill:** Load the `balanceplus-operator-development` skill when working with phone number fields, validation rules, `PhoneNumberCast`, the `MNO` facade, or the `PhoneNumberFormatResource`. The skill contains full API signatures, code examples, and configuration reference.
+**When to reference the skill:** Load the `laravel-mno-development` skill when working with phone number fields, validation rules, `PhoneNumberCast`, the `MNO` facade, or the `PhoneNumberFormatResource`. The skill contains full API signatures, code examples, and configuration reference.
 
 ### Quick Reference
 
