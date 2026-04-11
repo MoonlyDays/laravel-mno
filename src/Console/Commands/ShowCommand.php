@@ -21,15 +21,12 @@ class ShowCommand extends Command
     {
         $countryIsoCode = $this->argument('country');
         $carrierName = $this->argument('carrier');
-        $country = MNO::country($countryIsoCode);
 
-        if (is_null($carrierName)) {
-            return $this->showCountry($country);
-        }
-
-        $carrier = $country->carrier($carrierName);
-
-        return $this->showCarrier($carrier);
+        return match (true) {
+            is_null($countryIsoCode) => $this->showCarrier(MNO::carrier()),
+            is_null($carrierName) => $this->showCountry(MNO::country($countryIsoCode)),
+            default => $this->showCarrier(MNO::carrier($countryIsoCode, $carrierName)),
+        };
     }
 
     protected function showCountry(Country $country): int
