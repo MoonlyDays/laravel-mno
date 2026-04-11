@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MoonlyDays\MNO\Values;
 
+use Illuminate\Contracts\Database\Eloquent\Castable;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
 use Illuminate\Support\Traits\Tappable;
@@ -11,11 +12,12 @@ use libphonenumber\NumberParseException;
 use libphonenumber\PhoneNumber as BasePhoneNumber;
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberUtil;
+use MoonlyDays\MNO\Casts\PhoneNumberCast;
 use MoonlyDays\MNO\Exceptions\InvalidPhoneNumberException;
 use MoonlyDays\MNO\Facades\MNO;
 use Stringable;
 
-class PhoneNumber implements Stringable
+class PhoneNumber implements Castable, Stringable
 {
     use Macroable;
     use Tappable;
@@ -66,6 +68,11 @@ class PhoneNumber implements Stringable
         } catch (InvalidPhoneNumberException) {
             return null;
         }
+    }
+
+    public static function castUsing(array $arguments): string
+    {
+        return PhoneNumberCast::class;
     }
 
     /**

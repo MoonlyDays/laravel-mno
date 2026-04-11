@@ -102,3 +102,27 @@ describe('PhoneNumberCast on Eloquent models', function (): void {
             ->and($model->phone->e164())->toBe($e164);
     });
 });
+
+describe('PhoneNumber as a Castable', function (): void {
+    it('resolves to PhoneNumberCast via castUsing()', function (): void {
+        expect(PhoneNumber::castUsing([]))->toBe(PhoneNumberCast::class);
+    });
+
+    it('can be used directly as the cast class on an Eloquent model', function (): void {
+        $model = new class extends Model
+        {
+            protected $guarded = [];
+
+            protected $casts = [
+                'phone' => PhoneNumber::class,
+            ];
+        };
+
+        $e164 = castSample();
+        $model->phone = $e164;
+
+        expect($model->getAttributes()['phone'])->toBe($e164)
+            ->and($model->phone)->toBeInstanceOf(PhoneNumber::class)
+            ->and($model->phone->e164())->toBe($e164);
+    });
+});
