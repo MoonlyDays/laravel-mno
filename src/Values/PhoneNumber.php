@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MoonlyDays\MNO;
+namespace MoonlyDays\MNO\Values;
 
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
@@ -40,7 +40,7 @@ class PhoneNumber implements Stringable
      */
     public static function from(string $number, ?string $region = null): self
     {
-        $region ??= MNO::country();
+        $region ??= MNO::countryIsoCode();
         $util = PhoneNumberUtil::getInstance();
 
         try {

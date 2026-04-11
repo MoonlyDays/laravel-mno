@@ -31,15 +31,26 @@ composer run prepare
 
 ## Architecture
 
-**Core value object:** `PhoneNumber` — immutable phone number representation. Created via `PhoneNumber::from()`
-(throws `InvalidPhoneNumberException`) or `PhoneNumber::tryFrom()` (returns null). Provides format outputs:
-E.164, national, international. Global helper: `phoneNumber($number, $region)`. Extensible via `Macroable` and
-`Tappable` traits.
+**Core value objects** (under `MoonlyDays\MNO\Values`):
+
+- `PhoneNumber` — immutable phone number representation. Created via `PhoneNumber::from()`
+  (throws `InvalidPhoneNumberException`) or `PhoneNumber::tryFrom()` (returns null). Provides format outputs:
+  E.164, national, international. Global helper: `phoneNumber($number, $region)`. Extensible via `Macroable` and
+  `Tappable` traits.
+- `Country` — ISO 3166-1 alpha-2 country wrapper. `Country::from('TZ')` throws `InvalidCountryException` for
+  unknown codes. Exposes `countryCode()`, `carriers()`, `carrier($name)`, `exampleNumber()`,
+  `isMobileNumberPortable()`. Carrier data is lazy-loaded from libphonenumber via `CarrierDataRepository`.
+- `Carrier` — carrier within a country, holding NDC network codes. `Carrier::from($country, $name)` throws
+  `InvalidCarrierException` on miss. Supports `matches(PhoneNumber)`, `owns($networkCode)`, `prefixes()`.
 
 **Service layer:** `MnoService` — singleton registered by `MnoServiceProvider`. Configured via
-`config/operator.php` under the `mno.*` config namespace (operator name, country, network codes, carrier
-locale, validation lengths, number types). Accessible through the `MNO` facade (also aliased as the `mno`
-container binding).
+`config/operator.php` under the `mno.*` config namespace (operator name, country, network codes,
+validation lengths, number types). Accessible through the `MNO` facade (also aliased as the `mno`
+container binding). Key accessors: `countryIsoCode()`, `country()`, `carrierName()`, `carrier()`,
+`countryCode()`, `networkCodes()`, `minLength()`, `maxLength()`, `exampleNumber()`.
+
+**Console:** `php artisan mno:show [country?] [carrier?]` — `ShowCommand` inspects the configured MNO,
+an arbitrary country, or a specific carrier within a country.
 
 **Laravel integration:**
 
@@ -54,7 +65,7 @@ container binding).
 
 The config file is `config/operator.php`, but keys are loaded under the `mno.*` namespace (the service
 provider names the package `mno`). Env vars are prefixed `MNO_*` (e.g., `MNO_COUNTRY`, `MNO_NETWORK_CODES`,
-`MNO_PHONE_MIN_LENGTH`, `MNO_PHONE_MAX_LENGTH`, `MNO_CARRIER_LOCALE`, `MNO_NAME`).
+`MNO_PHONE_MIN_LENGTH`, `MNO_PHONE_MAX_LENGTH`, `MNO_NAME`).
 
 When `mno.validation.min_length` / `max_length` are null, `MnoService` infers the length from libphonenumber
 metadata by iterating through `mno.validation.number_types` in order. If no country is configured or the

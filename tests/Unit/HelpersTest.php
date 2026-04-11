@@ -6,7 +6,7 @@ use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberType;
 use libphonenumber\PhoneNumberUtil;
 use MoonlyDays\MNO\Exceptions\InvalidPhoneNumberException;
-use MoonlyDays\MNO\PhoneNumber;
+use MoonlyDays\MNO\Values\PhoneNumber;
 
 it('phoneNumber() global helper returns a PhoneNumber', function (): void {
     $util = PhoneNumberUtil::getInstance();

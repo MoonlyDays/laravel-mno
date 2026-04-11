@@ -23,10 +23,9 @@
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>
-        <env name="MNO_NAME" value="Test Operator"/>
+        <env name="MNO_NAME" value="Vodacom"/>
         <env name="MNO_COUNTRY" value="TZ"/>
         <env name="MNO_NETWORK_CODES" value=""/>
-        <env name="MNO_CARRIER_LOCALE" value="en_US"/>
         <env name="MNO_PHONE_MIN_LENGTH" value=""/>
         <env name="MNO_PHONE_MAX_LENGTH" value=""/>
     </php>

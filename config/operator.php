@@ -47,18 +47,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Carrier Locale
-    |--------------------------------------------------------------------------
-    |
-    | The locale used when retrieving carrier names from libphonenumber's
-    | carrier mapping database. Uses an IETF BCP 47 language tag format.
-    |
-    */
-
-    'carrier_locale' => env('MNO_CARRIER_LOCALE', 'en_US'),
-
-    /*
-    |--------------------------------------------------------------------------
     | Validation
     |--------------------------------------------------------------------------
     |

@@ -8,7 +8,7 @@ use libphonenumber\PhoneNumberType;
 use libphonenumber\PhoneNumberUtil;
 use MoonlyDays\MNO\Casts\PhoneNumberCast;
 use MoonlyDays\MNO\Exceptions\InvalidPhoneNumberException;
-use MoonlyDays\MNO\PhoneNumber;
+use MoonlyDays\MNO\Values\PhoneNumber;
 
 function castSample(string $region = 'TZ'): string
 {

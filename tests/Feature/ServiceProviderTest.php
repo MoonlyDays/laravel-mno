@@ -10,7 +10,7 @@ use MoonlyDays\MNO\Rules\PhoneNumberRule;
 
 it('publishes the operator config under the mno namespace', function (): void {
     expect(config('mno.country'))->toBe('TZ')
-        ->and(config('mno.name'))->toBe('Test Operator');
+        ->and(config('mno.name'))->toBe('Vodacom');
 });
 
 it('registers MnoService as a singleton bound to the "mno" alias', function (): void {

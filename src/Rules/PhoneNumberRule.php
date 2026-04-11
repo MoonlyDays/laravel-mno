@@ -9,7 +9,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use MoonlyDays\MNO\Facades\MNO;
-use MoonlyDays\MNO\PhoneNumber;
+use MoonlyDays\MNO\Values\PhoneNumber;
 
 class PhoneNumberRule implements ValidationRule
 {
@@ -38,7 +38,7 @@ class PhoneNumberRule implements ValidationRule
         }
 
         return (new self())
-            ->country(MNO::country())
+            ->country(MNO::countryIsoCode())
             ->networkCodes(MNO::networkCodes())
             ->minLength(MNO::minLength())
             ->maxLength(MNO::maxLength());

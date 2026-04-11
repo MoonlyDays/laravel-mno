@@ -6,19 +6,19 @@ use MoonlyDays\MNO\Enums\NumberType;
 use MoonlyDays\MNO\Exceptions\PhoneNumberLengthException;
 use MoonlyDays\MNO\Facades\MNO;
 use MoonlyDays\MNO\MnoService;
-use MoonlyDays\MNO\PhoneNumber;
+use MoonlyDays\MNO\Values\PhoneNumber;
 
 describe('MnoService config accessors', function (): void {
     it('returns the configured operator name', function (): void {
         config()->set('mno.name', 'Acme Telecom');
 
-        expect(app(MnoService::class)->name())->toBe('Acme Telecom');
+        expect(app(MnoService::class)->carrierName())->toBe('Acme Telecom');
     });
 
     it('returns the configured country', function (): void {
         config()->set('mno.country', 'KE');
 
-        expect(app(MnoService::class)->country())->toBe('KE');
+        expect(app(MnoService::class)->countryIsoCode())->toBe('KE');
     });
 
     it('returns the calling code for the configured country', function (): void {
@@ -31,14 +31,6 @@ describe('MnoService config accessors', function (): void {
         config()->set('mno.network_codes', ['74', '75', '76']);
 
         expect(app(MnoService::class)->networkCodes())->toBe(['74', '75', '76']);
-    });
-
-    it('returns the configured carrier locale with a sensible default', function (): void {
-        expect(app(MnoService::class)->carrierLocale())->toBe('en_US');
-
-        config()->set('mno.carrier_locale', 'sw_TZ');
-
-        expect(app(MnoService::class)->carrierLocale())->toBe('sw_TZ');
     });
 
     it('returns the configured number types', function (): void {
@@ -149,8 +141,8 @@ describe('MNO facade', function (): void {
         config()->set('mno.country', 'TZ');
         config()->set('mno.name', 'Facade Test');
 
-        expect(MNO::country())->toBe('TZ')
-            ->and(MNO::name())->toBe('Facade Test')
+        expect(MNO::countryIsoCode())->toBe('TZ')
+            ->and(MNO::carrierName())->toBe('Facade Test')
             ->and(MNO::countryCode())->toBe(255);
     });
 });
