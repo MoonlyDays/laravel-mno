@@ -23,12 +23,13 @@
     "spatie/laravel-package-tools": "^1.16"
   },
   "require-dev": {
-    "laravel/pint": "^1.14",
     "larastan/larastan": "^3.0",
+    "laravel/pint": "^1.14",
     "nunomaduro/collision": "^8.8",
     "orchestra/testbench": "^10.0.0||^9.0.0",
     "pestphp/pest": "^3.5",
-    "pestphp/pest-plugin-laravel": "^3.0"
+    "pestphp/pest-plugin-laravel": "^3.0",
+    "rector/rector": "^2.4"
   },
   "autoload": {
     "psr-4": {
@@ -50,7 +51,10 @@
     "prepare": "@php vendor/bin/testbench package:discover --ansi",
     "analyse": "vendor/bin/phpstan analyse",
     "test": "vendor/bin/pest",
-    "lint": "pint --parallel"
+    "lint": [
+      "pint --parallel",
+      "rector"
+    ]
   },
   "config": {
     "sort-packages": true,

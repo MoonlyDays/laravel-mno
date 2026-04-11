@@ -34,6 +34,7 @@ class CarrierDataRepository
     {
         $language = Locale::getPrimaryLanguage($locale);
         $language = $language === '' ? 'en' : $language;
+
         $data = $this->loadForLanguage($countryCode, $language);
 
         if ($data === null && $language !== 'en') {
