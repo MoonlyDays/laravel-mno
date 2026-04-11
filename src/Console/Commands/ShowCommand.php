@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MoonlyDays\MNO\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Str;
 use MoonlyDays\MNO\Facades\MNO;
 use MoonlyDays\MNO\Values\Carrier;
 use MoonlyDays\MNO\Values\Country;
@@ -34,10 +35,13 @@ class ShowCommand extends Command
         $this->components->info("Country: {$country->isoCode()}");
 
         $this->components->twoColumnDetail('ISO Code', $country->isoCode());
+        $this->components->twoColumnDetail('Name', $country->name());
         $this->components->twoColumnDetail('Carrier Count', count($country->carriers()));
         $this->components->twoColumnDetail('Country Code', '+'.$country->countryCode());
-        $this->components->twoColumnDetail('Mobile Network Portability', $country->isMobileNumberPortable() ? 'true' : 'false');
+        $this->components->twoColumnDetail('Mobile Network Portability', $country->isMobileNumberPortable() ? '<fg=green>true</>' : '<fg=red>false</>');
         $this->components->twoColumnDetail('Example Number', $country->exampleNumber());
+        $this->components->twoColumnDetail('Min Length', $country->minPhoneNumberLength(MNO::numberTypes()));
+        $this->components->twoColumnDetail('Max Length', $country->maxPhoneNumberLength(MNO::numberTypes()));
 
         $this->components->info('Carriers:');
 
@@ -52,16 +56,30 @@ class ShowCommand extends Command
 
     protected function showCarrier(Carrier $carrier): int
     {
+        $country = $carrier->country();
+        $minLength = $country->minPhoneNumberLength(MNO::numberTypes());
+        $maxLength = $country->maxPhoneNumberLength(MNO::numberTypes());
+
         $this->components->info("Carrier: {$carrier->name()}");
 
         $this->components->twoColumnDetail('Name', $carrier->name());
-        $this->components->twoColumnDetail('Country ISO Code', $carrier->country()->isoCode());
+        $this->components->twoColumnDetail('Country ISO Code', $country->isoCode());
+        $this->components->twoColumnDetail('Country Name', $country->name());
         $this->components->twoColumnDetail('Network Codes', $carrier->networkCodeCount());
+        $this->components->twoColumnDetail('Min Length', $minLength);
+        $this->components->twoColumnDetail('Max Length', $maxLength);
 
         $this->components->info('Network Codes:');
 
         foreach ($carrier->networkCodes() as $networkCode) {
-            $this->info('  +'.$carrier->country()->countryCode().' '.$networkCode);
+            // Render each allocation as "+<cc> <ndc> XXX…", where the trailing
+            // X placeholders pad the NDC out to the country's max national
+            // length so the operator can see a full example shape at a glance.
+            $prefix = '  +'.$country->countryCode().' '.$networkCode;
+            $remaining = max(0, $maxLength - Str::length($networkCode));
+            $placeholder = $remaining > 0 ? ' <fg=gray>'.Str::repeat('X', $remaining).'</>' : '';
+
+            $this->line('<info>'.$prefix.'</info>'.$placeholder);
         }
 
         $this->newLine();

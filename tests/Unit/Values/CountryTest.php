@@ -95,6 +95,23 @@ describe('Country metadata passthroughs', function (): void {
     });
 });
 
+describe('Country::name', function (): void {
+    it('returns the English display name by default', function (): void {
+        expect(Country::from('TZ')->name())->toBe('Tanzania')
+            ->and(Country::from('GB')->name())->toBe('United Kingdom');
+    });
+
+    it('honors an explicit display locale', function (): void {
+        expect(Country::from('TZ')->name('fr'))->toBe('Tanzanie');
+    });
+
+    it('falls back through parent locales when the exact locale is unavailable', function (): void {
+        // "en-US" should fall back to "en" since CLDR ships the base English
+        // region data rather than a US-specific variant.
+        expect(Country::from('TZ')->name('en-US'))->toBe('Tanzania');
+    });
+});
+
 describe('Country equality and stringification', function (): void {
     it('equals another Country with the same ISO code', function (): void {
         expect(Country::from('TZ')->equals(Country::from('TZ')))->toBeTrue()

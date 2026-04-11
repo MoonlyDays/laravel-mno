@@ -28,26 +28,18 @@ describe('InvalidPhoneNumberException', function (): void {
 });
 
 describe('PhoneNumberLengthException', function (): void {
-    it('builds a missing-country message', function (): void {
-        expect(PhoneNumberLengthException::missingCountry()->getMessage())
-            ->toContain('no country is configured');
-    });
-
     it('builds a missing-metadata message referencing the country', function (): void {
         expect(PhoneNumberLengthException::missingMetadata('ZZ')->getMessage())
             ->toContain('ZZ');
     });
 
-    it('builds an ambiguous-lengths message listing possibilities', function (): void {
-        $message = PhoneNumberLengthException::ambiguous('TZ', [7, 9])->getMessage();
-
-        expect($message)->toContain('TZ')
-            ->and($message)->toContain('7')
-            ->and($message)->toContain('9');
+    it('builds an undefined-lengths message referencing the country', function (): void {
+        expect(PhoneNumberLengthException::undefined('TZ')->getMessage())
+            ->toContain('TZ');
     });
 
     it('extends RuntimeException', function (): void {
-        expect(PhoneNumberLengthException::missingCountry())
+        expect(PhoneNumberLengthException::missingMetadata('TZ'))
             ->toBeInstanceOf(RuntimeException::class);
     });
 });

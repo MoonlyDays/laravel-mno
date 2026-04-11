@@ -4,14 +4,19 @@ declare(strict_types=1);
 
 namespace MoonlyDays\MNO\Values;
 
+use Giggsey\Locale\Locale;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
 use Illuminate\Support\Traits\Tappable;
+use libphonenumber\PhoneMetadata;
 use libphonenumber\PhoneNumber as BasePhoneNumber;
+use libphonenumber\PhoneNumberDesc;
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberUtil;
+use MoonlyDays\MNO\Enums\NumberType;
 use MoonlyDays\MNO\Exceptions\InvalidCarrierException;
 use MoonlyDays\MNO\Exceptions\InvalidCountryException;
+use MoonlyDays\MNO\Exceptions\PhoneNumberLengthException;
 use MoonlyDays\MNO\Support\CarrierDataRepository;
 use Stringable;
 
@@ -89,6 +94,22 @@ class Country implements Stringable
     }
 
     /**
+     * Resolve the localized display name for this region (e.g., "Tanzania",
+     * "Tanzanie", "タンザニア") from the CLDR data bundled with `giggsey/locale`.
+     *
+     * Pure-PHP — does not require ext-intl. Returns an empty string if neither
+     * the requested `$locale` nor any of its parent locales has a translation
+     * for this region.
+     *
+     * @param  string  $locale  BCP 47 locale tag used for the display name
+     *                          (e.g., "en", "fr", "zh-Hans"). Defaults to "en".
+     */
+    public function name(string $locale = 'en'): string
+    {
+        return Locale::getDisplayRegion('-'.$this->isoCode, $locale);
+    }
+
+    /**
      * Get all carriers with number allocations in this country.
      *
      * Lazily loaded from libphonenumber carrier data on first access and
@@ -161,6 +182,36 @@ class Country implements Stringable
     }
 
     /**
+     * Smallest national number length libphonenumber advertises for this
+     * region, resolved from the first `$numberTypes` descriptor that has
+     * usable metadata.
+     *
+     * @param  array<NumberType>  $numberTypes  priority-ordered list; the first
+     *                                          type with metadata wins, remaining types act as fallbacks.
+     *
+     * @throws PhoneNumberLengthException
+     */
+    public function minPhoneNumberLength(array $numberTypes): int
+    {
+        return min($this->possiblePhoneNumberLengths($numberTypes));
+    }
+
+    /**
+     * Largest national number length libphonenumber advertises for this
+     * region, resolved from the first `$numberTypes` descriptor that has
+     * usable metadata.
+     *
+     * @param  array<NumberType>  $numberTypes  priority-ordered list; the first
+     *                                          type with metadata wins, remaining types act as fallbacks.
+     *
+     * @throws PhoneNumberLengthException
+     */
+    public function maxPhoneNumberLength(array $numberTypes): int
+    {
+        return max($this->possiblePhoneNumberLengths($numberTypes));
+    }
+
+    /**
      * Determine whether this region supports mobile number portability.
      *
      * In MNP regions, the carrier attribution from libphonenumber reflects
@@ -177,6 +228,48 @@ class Country implements Stringable
     public function equals(self $other): bool
     {
         return $this->isoCode === $other->isoCode;
+    }
+
+    /**
+     * Resolve the possible national-number lengths libphonenumber advertises
+     * for this region. The given `$numberTypes` list is walked in order and
+     * the first descriptor that produces usable lengths wins — remaining
+     * entries act as fallbacks for regions where the preferred type has no
+     * metadata.
+     *
+     * @param  array<NumberType>  $numberTypes  priority-ordered list of
+     *                                          NumberType descriptors to consult.
+     * @return array<int>
+     *
+     * @throws PhoneNumberLengthException if libphonenumber has no metadata
+     *                                    for this region, or none of the given types expose usable lengths.
+     */
+    public function possiblePhoneNumberLengths(array $numberTypes): array
+    {
+        $metadata = $this->phoneNumberUtil->getMetadataForRegion($this->isoCode);
+        if (! $metadata instanceof PhoneMetadata) {
+            throw PhoneNumberLengthException::missingMetadata($this->isoCode);
+        }
+
+        foreach ($numberTypes as $numberType) {
+            $phoneNumberDesc = $numberType->descriptionFrom($metadata);
+            if (! $phoneNumberDesc instanceof PhoneNumberDesc) {
+                continue;
+            }
+
+            $lengths = collect($phoneNumberDesc->getPossibleLength())
+                ->filter(fn (int $length) => $length > 0)
+                ->values()
+                ->all();
+
+            if ($lengths === []) {
+                continue;
+            }
+
+            return $lengths;
+        }
+
+        throw PhoneNumberLengthException::undefined($this->isoCode);
     }
 
     /**

@@ -8,6 +8,7 @@ use Illuminate\Contracts\Database\Eloquent\Castable;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
 use Illuminate\Support\Traits\Tappable;
+use JsonSerializable;
 use libphonenumber\NumberParseException;
 use libphonenumber\PhoneNumber as BasePhoneNumber;
 use libphonenumber\PhoneNumberFormat;
@@ -17,7 +18,7 @@ use MoonlyDays\MNO\Exceptions\InvalidPhoneNumberException;
 use MoonlyDays\MNO\Facades\MNO;
 use Stringable;
 
-class PhoneNumber implements Castable, Stringable
+class PhoneNumber implements Castable, JsonSerializable, Stringable
 {
     use Macroable;
     use Tappable;
@@ -164,5 +165,14 @@ class PhoneNumber implements Castable, Stringable
     public function equals(self $other): bool
     {
         return $this->e164() === $other->e164();
+    }
+
+    /**
+     * Serialize to JSON as the E.164 form, so API responses and Eloquent
+     * JSON casts produce a canonical, region-independent string.
+     */
+    public function jsonSerialize(): string
+    {
+        return $this->e164();
     }
 }

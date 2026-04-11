@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
+use libphonenumber\PhoneNumberUtil;
 use MoonlyDays\MNO\Enums\NumberType;
-use MoonlyDays\MNO\Exceptions\PhoneNumberLengthException;
+use MoonlyDays\MNO\Exceptions\InvalidCountryException;
 use MoonlyDays\MNO\Facades\MNO;
 use MoonlyDays\MNO\MnoService;
 use MoonlyDays\MNO\Values\PhoneNumber;
+
+dataset('countries', fn () => PhoneNumberUtil::getInstance()->getSupportedRegions());
 
 describe('MnoService config accessors', function (): void {
     it('returns the configured operator name', function (): void {
@@ -34,7 +37,7 @@ describe('MnoService config accessors', function (): void {
     });
 
     it('returns the configured number types', function (): void {
-        config()->set('mno.validation.number_types', [NumberType::FixedLine, NumberType::Mobile]);
+        config()->set('mno.number_types', [NumberType::FixedLine, NumberType::Mobile]);
 
         expect(app(MnoService::class)->numberTypes())
             ->toBe([NumberType::FixedLine, NumberType::Mobile]);
@@ -43,8 +46,8 @@ describe('MnoService config accessors', function (): void {
 
 describe('MnoService length resolution', function (): void {
     it('uses explicit min/max length from config when set', function (): void {
-        config()->set('mno.validation.min_length', 7);
-        config()->set('mno.validation.max_length', 9);
+        config()->set('mno.min_length', 7);
+        config()->set('mno.max_length', 9);
 
         $service = app(MnoService::class);
 
@@ -52,66 +55,48 @@ describe('MnoService length resolution', function (): void {
             ->and($service->maxLength())->toBe(9);
     });
 
-    it('falls back to maxLength when only max is set', function (): void {
-        config()->set('mno.validation.min_length', null);
-        config()->set('mno.validation.max_length', 9);
-
-        expect(app(MnoService::class)->minLength())->toBe(9);
-    });
-
     it('infers the length from libphonenumber metadata for the configured country', function (): void {
         config()->set('mno.country', 'TZ');
-        config()->set('mno.validation.min_length', null);
-        config()->set('mno.validation.max_length', null);
+        config()->set('mno.min_length', null);
+        config()->set('mno.max_length', null);
 
         app()->forgetInstance(MnoService::class);
         $service = app(MnoService::class);
 
-        $inferred = $service->maxLength();
-
-        expect($inferred)->toBeInt()
-            ->and($inferred)->toBeGreaterThan(0)
-            // When min is null, it should fall back to the inferred max.
-            ->and($service->minLength())->toBe($inferred);
-    });
-
-    it('caches the inferred length across successive calls', function (): void {
-        config()->set('mno.country', 'TZ');
-        config()->set('mno.validation.min_length', null);
-        config()->set('mno.validation.max_length', null);
-
-        app()->forgetInstance(MnoService::class);
-        $service = app(MnoService::class);
-
-        $first = $service->maxLength();
-
-        // Change the country after the first call; cached value should win.
-        config()->set('mno.country', 'GB');
-        $second = $service->maxLength();
-
-        expect($first)->toBe($second);
+        expect($service->minLength())->toBeInt()
+            ->and($service->minLength())->toBeGreaterThan(0)
+            ->and($service->maxLength())->toBeInt()
+            ->and($service->maxLength())->toBeGreaterThanOrEqual($service->minLength());
     });
 
     it('throws when no country is configured and length must be inferred', function (): void {
         config()->set('mno.country', '');
-        config()->set('mno.validation.min_length', null);
-        config()->set('mno.validation.max_length', null);
-
-        // Force a fresh instance so the cached inferred length is cleared.
-        app()->forgetInstance(MnoService::class);
+        config()->set('mno.min_length', null);
+        config()->set('mno.max_length', null);
 
         app(MnoService::class)->maxLength();
-    })->throws(PhoneNumberLengthException::class, 'no country is configured');
+    })->throws(InvalidCountryException::class);
 
     it('throws for an unknown country code during inference', function (): void {
         config()->set('mno.country', 'ZZ');
-        config()->set('mno.validation.min_length', null);
-        config()->set('mno.validation.max_length', null);
-
-        app()->forgetInstance(MnoService::class);
+        config()->set('mno.min_length', null);
+        config()->set('mno.max_length', null);
 
         app(MnoService::class)->maxLength();
-    })->throws(PhoneNumberLengthException::class);
+    })->throws(InvalidCountryException::class);
+
+    it('infers mobile min/max length correctly for every supported region', function (string $region): void {
+        config()->set('mno.country', $region);
+        config()->set('mno.min_length', null);
+        config()->set('mno.max_length', null);
+
+        $service = app(MnoService::class);
+
+        $minLength = $service->minLength();
+        $maxLength = $service->maxLength();
+
+        expect($minLength)->toBeInt()->and($maxLength)->toBeInt();
+    })->with('countries');
 });
 
 describe('MnoService::exampleNumber', function (): void {

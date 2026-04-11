@@ -47,25 +47,42 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Validation
+    | National Number Length
     |--------------------------------------------------------------------------
     |
-    | Default constraints applied when using PhoneNumberRule::default(). When
-    | set to null, the length is inferred from libphonenumber metadata
-    | for the configured country. The number_types array controls which
-    | description types are checked and in what order. The first type
-    | that yields a valid, unambiguous length wins. If no type resolves
-    | to a single length, an exception is thrown.
+    | Minimum and maximum national (post country-code) digit counts used by
+    | PhoneNumberRule::default() and MNO::minLength() / MNO::maxLength().
+    |
+    | When left null, the bounds are inferred from libphonenumber metadata
+    | for the configured country via Country::possiblePhoneNumberLengths().
+    | Set these explicitly to pin the bounds and skip metadata inference,
+    | or to validate against a tighter range than the country advertises.
     |
     */
 
-    'validation' => [
-        'min_length' => env('MNO_PHONE_MIN_LENGTH'),
-        'max_length' => env('MNO_PHONE_MAX_LENGTH'),
-        'number_types' => [
-            NumberType::Mobile,
-            NumberType::General,
-        ],
-    ],
+    'min_length' => env('MNO_MIN_LENGTH'),
 
+    'max_length' => env('MNO_MAX_LENGTH'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Number Types
+    |--------------------------------------------------------------------------
+    |
+    | Priority-ordered list of libphonenumber NumberType descriptors consulted
+    | when inferring possible national-number lengths for the configured
+    | country. The list is walked in order and the first descriptor whose
+    | metadata exposes usable possible lengths wins — remaining entries act as
+    | fallbacks for regions where the preferred type has no metadata.
+    |
+    | The default prefers Mobile (since this package targets Mobile Network
+    | Operators) and falls back to General for regions where libphonenumber
+    | does not ship a dedicated mobile descriptor.
+    |
+    */
+
+    'number_types' => [
+        NumberType::Mobile,
+        NumberType::General,
+    ],
 ];
