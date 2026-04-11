@@ -1,107 +1,120 @@
-# BalancePlus Operator
+# Laravel MNO
 
-Пакет Laravel для валидации, нормализации и работы с MSISDN (телефонными номерами). Обёртка над
-`giggsey/libphonenumber-for-php` с интеграцией в систему валидации Laravel, Eloquent-касты и фасады.
+Laravel package for validating, normalizing, and working with MSISDN phone numbers tied to a single Mobile Network
+Operator. A wrapper around [`giggsey/libphonenumber-for-php`](https://github.com/giggsey/libphonenumber-for-php) with
+integration into Laravel's validation system, Eloquent casts, and facades.
 
-> **Проприетарный пакет.** Только для внутреннего использования.
+Released under the [MIT License](LICENSE).
 
-## Требования
+## Requirements
 
 - PHP 8.2+
-- Laravel 11, 12 или 13
+- Laravel 11, 12, or 13
 
-## Установка
-
-```bash
-composer require balanceplus/operator
-```
-
-Опубликуйте конфигурационный файл:
+## Installation
 
 ```bash
-php artisan vendor:publish --tag="operator-config"
+composer require moonlydays/laravel-mno
 ```
 
-## Конфигурация
+Publish the configuration file:
 
-Настройте переменные окружения:
+```bash
+php artisan vendor:publish --tag="mno-config"
+```
+
+## Configuration
+
+Set up the environment variables:
 
 ```env
-OPERATOR_NAME=MTS
-OPERATOR_COUNTRY=RU
-OPERATOR_NETWORK_CODES=910,911,912
-OPERATOR_CARRIER_LOCALE=ru_RU
-OPERATOR_MSISDN_MIN_LENGTH=10
-OPERATOR_MSISDN_MAX_LENGTH=10
+MNO_NAME=MTS
+MNO_COUNTRY=RU
+MNO_NETWORK_CODES=910,911,912
+MNO_CARRIER_LOCALE=ru_RU
+MNO_PHONE_MIN_LENGTH=10
+MNO_PHONE_MAX_LENGTH=10
 ```
 
-| Переменная                   | Описание                                             |
-|------------------------------|------------------------------------------------------|
-| `OPERATOR_NAME`              | Название оператора связи                             |
-| `OPERATOR_COUNTRY`           | ISO 3166-1 alpha-2 код страны (например, `RU`, `TZ`) |
-| `OPERATOR_NETWORK_CODES`     | NDC-префиксы оператора через запятую                 |
-| `OPERATOR_CARRIER_LOCALE`    | Локаль для названий операторов (IETF BCP 47)         |
-| `OPERATOR_MSISDN_MIN_LENGTH` | Минимальная длина национального номера               |
-| `OPERATOR_MSISDN_MAX_LENGTH` | Максимальная длина национального номера              |
+| Variable                | Description                                                                        |
+|-------------------------|------------------------------------------------------------------------------------|
+| `MNO_NAME`              | Name of the mobile network operator                                                |
+| `MNO_COUNTRY`           | ISO 3166-1 alpha-2 country code (e.g., `RU`, `TZ`)                                 |
+| `MNO_NETWORK_CODES`     | Comma-separated National Destination Code (NDC) prefixes for the operator          |
+| `MNO_CARRIER_LOCALE`    | Locale for libphonenumber carrier name lookups (IETF BCP 47)                       |
+| `MNO_PHONE_MIN_LENGTH`  | Minimum national number length (optional — inferred from libphonenumber metadata)  |
+| `MNO_PHONE_MAX_LENGTH`  | Maximum national number length (optional — inferred from libphonenumber metadata)  |
 
-## Использование
+When `MNO_PHONE_MIN_LENGTH` / `MNO_PHONE_MAX_LENGTH` are unset, the package infers the length from libphonenumber
+metadata for the configured country, walking the `number_types` priority list in `config/mno.php`
+(defaults to `Mobile`, then `General`).
 
-### Создание MSISDN
+## Usage
+
+### Creating a PhoneNumber
 
 ```php
-use BalancePlus\Operator\PhoneNumber;
+use MoonlyDays\MNO\PhoneNumber;
 
-// Парсинг с исключением при ошибке
-$msisdn = PhoneNumber::from('+79101234567');
-$msisdn = PhoneNumber::from('9101234567', 'RU');
+// Parse, throwing InvalidPhoneNumberException on failure
+$phone = PhoneNumber::from('+79101234567');
+$phone = PhoneNumber::from('9101234567', 'RU');
 
-// Безопасный парсинг (возвращает null при ошибке)
-$msisdn = PhoneNumber::tryFrom('invalid'); // null
+// Safe parse, returning null on failure
+$phone = PhoneNumber::tryFrom('invalid'); // null
 
-// Глобальный хелпер
-$msisdn = msisdn('+79101234567');
+// Global helper
+$phone = phoneNumber('+79101234567');
 ```
 
-### Форматирование
+`PhoneNumber` is a lightweight value object wrapping libphonenumber's native `PhoneNumber`. It implements
+`Stringable` (casting to string produces the E.164 form) and uses Laravel's `Macroable` and `Tappable` traits.
+
+### Formatting
 
 ```php
-$msisdn = Msisdn::from('+79101234567');
+$phone = PhoneNumber::from('+79101234567');
 
-$msisdn->e164();          // "+79101234567"
-$msisdn->national();      // "8 910 123-45-67"
-$msisdn->international(); // "+7 910 123-45-67"
+$phone->e164();          // "+79101234567"
+$phone->national();      // "8 (910) 123-45-67"
+$phone->international(); // "+7 910 123-45-67"
+(string) $phone;         // "+79101234567"
 ```
 
-### Получение компонентов номера
+### Retrieving number components
 
 ```php
-$msisdn = Msisdn::from('+79101234567');
+$phone = PhoneNumber::from('+79101234567');
 
-$msisdn->countryCode();     // 7
-$msisdn->countryIso();      // "RU"
-$msisdn->nationalNumber();  // "9101234567"
-$msisdn->networkCode();     // "910"
-$msisdn->subscriberNumber(); // "1234567"
-$msisdn->carrierName();     // "MTS"
+$phone->countryCode();      // 7
+$phone->countryIso();       // "RU"
+$phone->nationalNumber();   // "9101234567"
+$phone->networkCode();      // "910"
+$phone->subscriberNumber(); // "1234567"
+$phone->toPhoneNumber();    // underlying libphonenumber\PhoneNumber
 ```
 
-### Валидация в запросах
+Two `PhoneNumber` instances can be compared via `$a->equals($b)` (equality is based on the E.164 form).
+
+### Validation
 
 ```php
 use Illuminate\Validation\Rule;
 
-// Использование макроса Rule::msisdn()
+// Use the Rule::phoneNumber() macro — picks up defaults from config
 $request->validate([
-    'phone' => ['required', Rule::msisdn()],
+    'phone' => ['required', Rule::phoneNumber()],
 ]);
+```
 
-// Кастомная конфигурация правила
-use BalancePlus\Operator\Rules\PhoneNumberRule;
+```php
+use MoonlyDays\MNO\Rules\PhoneNumberRule;
 
+// Customize the rule fluently
 $request->validate([
     'phone' => [
         'required',
-        (new PhoneNumberRule)
+        (new PhoneNumberRule())
             ->country('RU', 'BY', 'KZ')
             ->networkCodes('910', '911')
             ->minLength(10)
@@ -110,11 +123,33 @@ $request->validate([
 ]);
 ```
 
-### Eloquent Cast
+Validation failures translate the following keys, which you can publish or override in your own language files:
+
+- `validation.msisdn.invalid`
+- `validation.msisdn.country`
+- `validation.msisdn.min_length` (receives `:min`)
+- `validation.msisdn.max_length` (receives `:max`)
+- `validation.msisdn.network_code`
+
+#### Overriding the default rule
+
+`PhoneNumberRule::defaults()` lets you swap in a custom resolver used by `Rule::phoneNumber()`:
 
 ```php
-use BalancePlus\Operator\Casts\PhoneNumberCast;
-use BalancePlus\Operator\PhoneNumber;
+use MoonlyDays\MNO\Rules\PhoneNumberRule;
+
+PhoneNumberRule::defaults(fn () => (new PhoneNumberRule())
+    ->country('RU')
+    ->minLength(10)
+    ->maxLength(10));
+```
+
+### Eloquent cast
+
+```php
+use Illuminate\Database\Eloquent\Model;
+use MoonlyDays\MNO\Casts\PhoneNumberCast;
+use MoonlyDays\MNO\PhoneNumber;
 
 class User extends Model
 {
@@ -123,58 +158,53 @@ class User extends Model
     ];
 }
 
-// Использование
 $user->phone = '+79101234567';
-$user->save(); // Сохраняется в E.164: "+79101234567"
+$user->save(); // Stored as E.164: "+79101234567"
 
-$user->phone->national(); // "8 910 123-45-67"
+$user->phone instanceof PhoneNumber; // true
+$user->phone->national();            // "8 (910) 123-45-67"
 ```
 
-### Фасад Operator
+The cast accepts either a string or a `PhoneNumber` instance when setting, and always persists the E.164 form.
+
+### MNO facade
 
 ```php
-use BalancePlus\Operator\Facades\Operator;
+use MoonlyDays\MNO\Facades\MNO;
 
-Operator::country();       // "RU"
-Operator::countryCode();   // 7
-Operator::name();          // "MTS"
-Operator::networkCodes();  // ["910", "911", "912"]
-Operator::carrierLocale(); // "ru_RU"
-Operator::minLength();     // 10
-Operator::maxLength();     // 10
-Operator::exampleNumber(); // Msisdn instance
+MNO::country();       // "RU"
+MNO::countryCode();   // 7
+MNO::name();          // "MTS"
+MNO::networkCodes();  // ["910", "911", "912"]
+MNO::carrierLocale(); // "ru_RU"
+MNO::minLength();     // 10
+MNO::maxLength();     // 10
+MNO::exampleNumber(); // PhoneNumber|null
+MNO::numberTypes();   // array<NumberType>
 ```
 
-### Работа с абонентом
+The facade resolves the `MnoService` singleton, which is also bound to the container alias `mno` and can be
+injected directly.
+
+### Extending via macros
+
+`PhoneNumber` uses the `Macroable` trait, so you can add project-specific helpers:
 
 ```php
-use BalancePlus\Operator\Subscriber;
-use BalancePlus\Operator\PhoneNumber;
-
-$subscriber = new Subscriber(PhoneNumber::from('+79101234567'));
-
-$subscriber->msisdn()->e164(); // "+79101234567"
-
-// Загрузка компонентов (lazy-loading)
-$subscriber->load(BalanceComponent::class);
-$subscriber->component(BalanceComponent::class);
-```
-
-### Расширение через макросы
-
-```php
-use BalancePlus\Operator\PhoneNumber;
+use MoonlyDays\MNO\PhoneNumber;
 
 PhoneNumber::macro('isRussian', function (): bool {
+    /** @var PhoneNumber $this */
     return $this->countryIso() === 'RU';
 });
 
-$msisdn = PhoneNumber::from('+79101234567');
-$msisdn->isRussian(); // true
+PhoneNumber::from('+79101234567')->isRussian(); // true
 ```
 
-## Тестирование
+## Testing
 
 ```bash
-composer test
+composer test       # Pest
+composer analyse    # PHPStan (level 5)
+composer lint       # Laravel Pint
 ```
