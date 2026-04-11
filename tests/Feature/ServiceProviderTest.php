@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use libphonenumber\PhoneNumberToCarrierMapper;
 use libphonenumber\PhoneNumberUtil;
@@ -28,4 +29,8 @@ it('binds PhoneNumberToCarrierMapper to the shared instance', function (): void 
 
 it('registers the Rule::phoneNumber macro', function (): void {
     expect(Rule::phoneNumber())->toBeInstanceOf(PhoneNumberRule::class);
+});
+
+it('registers the Request::phoneNumber macro', function (): void {
+    expect(Request::hasMacro('phoneNumber'))->toBeTrue();
 });
