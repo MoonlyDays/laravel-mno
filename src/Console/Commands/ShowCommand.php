@@ -38,6 +38,8 @@ class ShowCommand extends Command
         $this->components->twoColumnDetail('Country Code', '+'.$country->countryCode());
         $this->components->twoColumnDetail('Mobile Network Portability', $country->isMobileNumberPortable() ? 'true' : 'false');
         $this->components->twoColumnDetail('Example Number', $country->exampleNumber());
+        $this->components->twoColumnDetail('Min Length', $country->minPhoneNumberLength());
+        $this->components->twoColumnDetail('Max Length', $country->maxPhoneNumberLength());
 
         $this->components->info('Carriers:');
 
@@ -52,16 +54,26 @@ class ShowCommand extends Command
 
     protected function showCarrier(Carrier $carrier): int
     {
+        $country = $carrier->country();
+        $minLength = $country->minPhoneNumberLength();
+        $maxLength = $country->maxPhoneNumberLength();
+
         $this->components->info("Carrier: {$carrier->name()}");
 
         $this->components->twoColumnDetail('Name', $carrier->name());
-        $this->components->twoColumnDetail('Country ISO Code', $carrier->country()->isoCode());
+        $this->components->twoColumnDetail('Country ISO Code', $country->isoCode());
         $this->components->twoColumnDetail('Network Codes', $carrier->networkCodeCount());
+        $this->components->twoColumnDetail('Min Length', $minLength);
+        $this->components->twoColumnDetail('Max Length', $maxLength);
 
         $this->components->info('Network Codes:');
 
         foreach ($carrier->networkCodes() as $networkCode) {
-            $this->info('  +'.$carrier->country()->countryCode().' '.$networkCode);
+            $prefix = '  +'.$country->countryCode().' '.$networkCode;
+            $remaining = $maxLength !== null ? max(0, $maxLength - mb_strlen($networkCode)) : 0;
+            $placeholder = $remaining > 0 ? ' <fg=gray>'.str_repeat('X', $remaining).'</>' : '';
+
+            $this->line('<info>'.$prefix.'</info>'.$placeholder);
         }
 
         $this->newLine();

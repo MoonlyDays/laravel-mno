@@ -75,7 +75,7 @@ describe('MnoService length resolution', function (): void {
             ->and($service->minLength())->toBe($inferred);
     });
 
-    it('caches the inferred length across successive calls', function (): void {
+    it('re-infers the length when the configured country changes', function (): void {
         config()->set('mno.country', 'TZ');
         config()->set('mno.validation.min_length', null);
         config()->set('mno.validation.max_length', null);
@@ -83,22 +83,22 @@ describe('MnoService length resolution', function (): void {
         app()->forgetInstance(MnoService::class);
         $service = app(MnoService::class);
 
-        $first = $service->maxLength();
+        $tzLength = $service->maxLength();
 
-        // Change the country after the first call; cached value should win.
         config()->set('mno.country', 'GB');
-        $second = $service->maxLength();
+        $gbLength = $service->maxLength();
 
-        expect($first)->toBe($second);
+        // GB mobile numbers have 10 national digits; TZ has 9. The length
+        // must reflect the current config, not a previously cached value.
+        expect($tzLength)->toBeInt()
+            ->and($gbLength)->toBeInt()
+            ->and($gbLength)->not->toBe($tzLength);
     });
 
     it('throws when no country is configured and length must be inferred', function (): void {
         config()->set('mno.country', '');
         config()->set('mno.validation.min_length', null);
         config()->set('mno.validation.max_length', null);
-
-        // Force a fresh instance so the cached inferred length is cleared.
-        app()->forgetInstance(MnoService::class);
 
         app(MnoService::class)->maxLength();
     })->throws(PhoneNumberLengthException::class, 'no country is configured');
@@ -107,8 +107,6 @@ describe('MnoService length resolution', function (): void {
         config()->set('mno.country', 'ZZ');
         config()->set('mno.validation.min_length', null);
         config()->set('mno.validation.max_length', null);
-
-        app()->forgetInstance(MnoService::class);
 
         app(MnoService::class)->maxLength();
     })->throws(PhoneNumberLengthException::class);

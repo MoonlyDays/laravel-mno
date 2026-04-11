@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-use MoonlyDays\MNO\Enums\NumberType;
-
 return [
 
     /*
@@ -45,27 +43,7 @@ return [
 
     'network_codes' => array_filter(explode(',', (string) env('MNO_NETWORK_CODES', ''))),
 
-    /*
-    |--------------------------------------------------------------------------
-    | Validation
-    |--------------------------------------------------------------------------
-    |
-    | Default constraints applied when using PhoneNumberRule::default(). When
-    | set to null, the length is inferred from libphonenumber metadata
-    | for the configured country. The number_types array controls which
-    | description types are checked and in what order. The first type
-    | that yields a valid, unambiguous length wins. If no type resolves
-    | to a single length, an exception is thrown.
-    |
-    */
+    'min_length' => env('MNO_MIN_LENGTH'),
 
-    'validation' => [
-        'min_length' => env('MNO_PHONE_MIN_LENGTH'),
-        'max_length' => env('MNO_PHONE_MAX_LENGTH'),
-        'number_types' => [
-            NumberType::Mobile,
-            NumberType::General,
-        ],
-    ],
-
+    'max_length' => env('MNO_MAX_LENGTH'),
 ];

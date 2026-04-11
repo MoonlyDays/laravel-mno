@@ -7,11 +7,15 @@ namespace MoonlyDays\MNO\Values;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
 use Illuminate\Support\Traits\Tappable;
+use libphonenumber\PhoneMetadata;
 use libphonenumber\PhoneNumber as BasePhoneNumber;
+use libphonenumber\PhoneNumberDesc;
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberUtil;
+use MoonlyDays\MNO\Enums\NumberType;
 use MoonlyDays\MNO\Exceptions\InvalidCarrierException;
 use MoonlyDays\MNO\Exceptions\InvalidCountryException;
+use MoonlyDays\MNO\Exceptions\PhoneNumberLengthException;
 use MoonlyDays\MNO\Support\CarrierDataRepository;
 use Stringable;
 
@@ -23,6 +27,8 @@ class Country implements Stringable
     protected string $isoCode;
 
     protected PhoneNumberUtil $phoneNumberUtil;
+
+    protected ?array $cachedPossibleLengths = null;
 
     /**
      * Memoized carriers, keyed by display name. Null until first load.
@@ -160,6 +166,16 @@ class Country implements Stringable
         );
     }
 
+    public function minPhoneNumberLength(): int
+    {
+        return min($this->possiblePhoneNumberLengths());
+    }
+
+    public function maxPhoneNumberLength(): int
+    {
+        return max($this->possiblePhoneNumberLengths());
+    }
+
     /**
      * Determine whether this region supports mobile number portability.
      *
@@ -177,6 +193,41 @@ class Country implements Stringable
     public function equals(self $other): bool
     {
         return $this->isoCode === $other->isoCode;
+    }
+
+    public function possiblePhoneNumberLengths(): array
+    {
+        if ($this->cachedPossibleLengths !== null) {
+            return $this->cachedPossibleLengths;
+        }
+
+        $metadata = $this->phoneNumberUtil->getMetadataForRegion($this->isoCode);
+        if (! $metadata instanceof PhoneMetadata) {
+            throw PhoneNumberLengthException::missingMetadata();
+        }
+
+        $lengths = [];
+
+        foreach (NumberType::cases() as $numberType) {
+            $phoneNumberDesc = $numberType->descriptionFrom($metadata);
+            if (! $phoneNumberDesc instanceof PhoneNumberDesc) {
+                continue;
+            }
+
+            $lengths = array_merge($lengths, $phoneNumberDesc->getPossibleLength());
+        }
+
+        $lengths = collect($lengths)
+            ->unique()
+            ->filter(fn (int $length) => $length > 0)
+            ->values()
+            ->all();
+
+        if ($lengths === []) {
+            throw PhoneNumberLengthException::undefined($this->isoCode);
+        }
+
+        return $this->cachedPossibleLengths = $lengths;
     }
 
     /**

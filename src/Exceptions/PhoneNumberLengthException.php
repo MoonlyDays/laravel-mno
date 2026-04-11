@@ -30,7 +30,14 @@ final class PhoneNumberLengthException extends RuntimeException
     public static function missingMetadata(string $country): self
     {
         return new self(
-            sprintf('Cannot infer mobile number length for country [%s]: no metadata available. Please configure operator.validation.min_length and operator.validation.max_length explicitly.', $country),
+            sprintf('Cannot infer mobile number length for country [%s]: no metadata available. ', $country),
+        );
+    }
+
+    public static function undefined(string $country): self
+    {
+        return new self(
+            sprintf('Could not infer possible lengths for country [%s] because metadata doesn\'t provide meaningful data', $country)
         );
     }
 }
