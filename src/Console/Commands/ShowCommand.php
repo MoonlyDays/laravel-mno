@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MoonlyDays\MNO\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use MoonlyDays\MNO\Facades\MNO;
 use MoonlyDays\MNO\Values\Carrier;
@@ -39,6 +40,7 @@ class ShowCommand extends Command
         $this->components->twoColumnDetail('Carrier Count', count($country->carriers()));
         $this->components->twoColumnDetail('Country Code', '+'.$country->countryCode());
         $this->components->twoColumnDetail('Mobile Network Portability', $country->isMobileNumberPortable() ? '<fg=green>true</>' : '<fg=red>false</>');
+        $this->components->twoColumnDetail('Timezones', $this->summarizeList($country->timezones()));
         $this->components->twoColumnDetail('Example Number', $country->exampleNumber());
         $this->components->twoColumnDetail('Min Length', $country->minPhoneNumberLength(MNO::numberTypes()));
         $this->components->twoColumnDetail('Max Length', $country->maxPhoneNumberLength(MNO::numberTypes()));
@@ -46,7 +48,10 @@ class ShowCommand extends Command
         $this->components->info('Carriers:');
 
         foreach ($country->carriers() as $carrier) {
-            $this->components->twoColumnDetail($carrier->name(), $carrier->networkCodeCount());
+            $this->components->twoColumnDetail(
+                $carrier->name(),
+                $this->summarizeList($carrier->networkCodes()),
+            );
         }
 
         $this->newLine();
@@ -85,5 +90,26 @@ class ShowCommand extends Command
         $this->newLine();
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Summarize a list of items, showing the first two and collapsing the rest.
+     *
+     * E.g. ["A", "B", "C", "D"] → "A, B, and 2 others"
+     */
+    protected function summarizeList(array $items, int $limit = 4): string
+    {
+        if ($items === []) {
+            return '<fg=gray>none</>';
+        }
+
+        $remaining = count($items) - $limit;
+        if ($remaining <= 0) {
+            return Arr::join($items, ', ', ' and ');
+        }
+
+        $visible = array_slice($items, 0, $limit);
+
+        return implode(', ', $visible).' and <fg=gray>'.$remaining.' more</>';
     }
 }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
-use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberType;
 use libphonenumber\PhoneNumberUtil;
 use MoonlyDays\MNO\Rules\PhoneNumberRule;
@@ -14,18 +13,10 @@ function validate(array $data, array $rules): Illuminate\Contracts\Validation\Va
     return Validator::make($data, $rules);
 }
 
-function mobileE164(string $region): string
-{
-    $util = PhoneNumberUtil::getInstance();
-    $example = $util->getExampleNumberForType($region, PhoneNumberType::MOBILE);
-
-    return $util->format($example, PhoneNumberFormat::E164);
-}
-
 describe('PhoneNumberRule basic validation', function (): void {
     it('passes for a valid phone number', function (): void {
         $validator = validate(
-            ['phone' => mobileE164('TZ')],
+            ['phone' => mobileExampleFor('TZ')],
             ['phone' => new PhoneNumberRule()],
         );
 
@@ -55,19 +46,19 @@ describe('PhoneNumberRule country constraint', function (): void {
     it('passes when the number matches one of the allowed countries', function (): void {
         $rule = (new PhoneNumberRule())->country('TZ', 'KE');
 
-        expect(validate(['phone' => mobileE164('TZ')], ['phone' => $rule])->passes())->toBeTrue();
+        expect(validate(['phone' => mobileExampleFor('TZ')], ['phone' => $rule])->passes())->toBeTrue();
     });
 
     it('fails when the number is from a different country', function (): void {
         $rule = (new PhoneNumberRule())->country('TZ');
 
-        expect(validate(['phone' => mobileE164('GB')], ['phone' => $rule])->fails())->toBeTrue();
+        expect(validate(['phone' => mobileExampleFor('GB')], ['phone' => $rule])->fails())->toBeTrue();
     });
 
     it('accepts countries passed as an array', function (): void {
         $rule = (new PhoneNumberRule())->country(['TZ', 'KE']);
 
-        expect(validate(['phone' => mobileE164('TZ')], ['phone' => $rule])->passes())->toBeTrue();
+        expect(validate(['phone' => mobileExampleFor('TZ')], ['phone' => $rule])->passes())->toBeTrue();
     });
 });
 
@@ -75,19 +66,19 @@ describe('PhoneNumberRule length constraints', function (): void {
     it('fails when the national number is shorter than min length', function (): void {
         $rule = (new PhoneNumberRule())->minLength(20);
 
-        expect(validate(['phone' => mobileE164('TZ')], ['phone' => $rule])->fails())->toBeTrue();
+        expect(validate(['phone' => mobileExampleFor('TZ')], ['phone' => $rule])->fails())->toBeTrue();
     });
 
     it('fails when the national number is longer than max length', function (): void {
         $rule = (new PhoneNumberRule())->maxLength(2);
 
-        expect(validate(['phone' => mobileE164('TZ')], ['phone' => $rule])->fails())->toBeTrue();
+        expect(validate(['phone' => mobileExampleFor('TZ')], ['phone' => $rule])->fails())->toBeTrue();
     });
 
     it('passes when the national number is within bounds', function (): void {
         $rule = (new PhoneNumberRule())->minLength(1)->maxLength(30);
 
-        expect(validate(['phone' => mobileE164('TZ')], ['phone' => $rule])->passes())->toBeTrue();
+        expect(validate(['phone' => mobileExampleFor('TZ')], ['phone' => $rule])->passes())->toBeTrue();
     });
 });
 
@@ -100,13 +91,13 @@ describe('PhoneNumberRule network code constraint', function (): void {
 
         $rule = (new PhoneNumberRule())->networkCodes($prefix);
 
-        expect(validate(['phone' => mobileE164('TZ')], ['phone' => $rule])->passes())->toBeTrue();
+        expect(validate(['phone' => mobileExampleFor('TZ')], ['phone' => $rule])->passes())->toBeTrue();
     });
 
     it('fails when the number does not start with an allowed network code', function (): void {
         $rule = (new PhoneNumberRule())->networkCodes('99');
 
-        expect(validate(['phone' => mobileE164('TZ')], ['phone' => $rule])->fails())->toBeTrue();
+        expect(validate(['phone' => mobileExampleFor('TZ')], ['phone' => $rule])->fails())->toBeTrue();
     });
 
     it('accepts network codes as an array', function (): void {
@@ -117,7 +108,7 @@ describe('PhoneNumberRule network code constraint', function (): void {
 
         $rule = (new PhoneNumberRule())->networkCodes([$prefix, '00']);
 
-        expect(validate(['phone' => mobileE164('TZ')], ['phone' => $rule])->passes())->toBeTrue();
+        expect(validate(['phone' => mobileExampleFor('TZ')], ['phone' => $rule])->passes())->toBeTrue();
     });
 });
 
@@ -135,7 +126,7 @@ describe('PhoneNumberRule::default', function (): void {
         $rule = PhoneNumberRule::default();
 
         expect($rule)->toBeInstanceOf(PhoneNumberRule::class);
-        expect(validate(['phone' => mobileE164('TZ')], ['phone' => $rule])->passes())->toBeTrue();
+        expect(validate(['phone' => mobileExampleFor('TZ')], ['phone' => $rule])->passes())->toBeTrue();
     });
 
     it('rejects numbers from other countries when default is TZ', function (): void {
@@ -143,7 +134,7 @@ describe('PhoneNumberRule::default', function (): void {
 
         $rule = PhoneNumberRule::default();
 
-        expect(validate(['phone' => mobileE164('GB')], ['phone' => $rule])->fails())->toBeTrue();
+        expect(validate(['phone' => mobileExampleFor('GB')], ['phone' => $rule])->fails())->toBeTrue();
     });
 
     it('respects a custom default resolver', function (): void {
@@ -151,8 +142,8 @@ describe('PhoneNumberRule::default', function (): void {
 
         $rule = PhoneNumberRule::default();
 
-        expect(validate(['phone' => mobileE164('GB')], ['phone' => $rule])->passes())->toBeTrue()
-            ->and(validate(['phone' => mobileE164('TZ')], ['phone' => $rule])->fails())->toBeTrue();
+        expect(validate(['phone' => mobileExampleFor('GB')], ['phone' => $rule])->passes())->toBeTrue()
+            ->and(validate(['phone' => mobileExampleFor('TZ')], ['phone' => $rule])->fails())->toBeTrue();
     });
 });
 

@@ -12,6 +12,7 @@ use JsonSerializable;
 use libphonenumber\NumberParseException;
 use libphonenumber\PhoneNumber as BasePhoneNumber;
 use libphonenumber\PhoneNumberFormat;
+use libphonenumber\PhoneNumberToTimeZonesMapper;
 use libphonenumber\PhoneNumberUtil;
 use MoonlyDays\MNO\Casts\PhoneNumberCast;
 use MoonlyDays\MNO\Exceptions\InvalidPhoneNumberException;
@@ -149,6 +150,30 @@ class PhoneNumber implements Castable, JsonSerializable, Stringable
         $ndcLength = $this->phoneNumberUtil->getLengthOfNationalDestinationCode($this->phoneNumber);
 
         return Str::substr($this->nationalNumber(), $ndcLength);
+    }
+
+    /**
+     * Get all IANA timezone identifiers for this phone number.
+     *
+     * @return array<string>
+     */
+    public function timezones(): array
+    {
+        $mapper = PhoneNumberToTimeZonesMapper::getInstance();
+
+        return array_values(array_filter(
+            $mapper->getTimeZonesForNumber($this->phoneNumber),
+            static fn (string $tz): bool => $tz !== PhoneNumberToTimeZonesMapper::UNKNOWN_TIMEZONE,
+        ));
+    }
+
+    /**
+     * Get the primary IANA timezone identifier for this phone number,
+     * or null if the timezone cannot be determined.
+     */
+    public function timezone(): ?string
+    {
+        return $this->timezones()[0] ?? null;
     }
 
     /**
