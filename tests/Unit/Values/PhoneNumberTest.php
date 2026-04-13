@@ -18,9 +18,9 @@ describe('PhoneNumber::from', function (): void {
     });
 
     it('parses a national-format number using a provided region', function (): void {
-        $util = \libphonenumber\PhoneNumberUtil::getInstance();
-        $example = $util->getExampleNumberForType('GB', \libphonenumber\PhoneNumberType::MOBILE);
-        $national = $util->format($example, \libphonenumber\PhoneNumberFormat::NATIONAL);
+        $util = libphonenumber\PhoneNumberUtil::getInstance();
+        $example = $util->getExampleNumberForType('GB', libphonenumber\PhoneNumberType::MOBILE);
+        $national = $util->format($example, libphonenumber\PhoneNumberFormat::NATIONAL);
 
         $phone = PhoneNumber::from($national, 'GB');
 
@@ -31,9 +31,9 @@ describe('PhoneNumber::from', function (): void {
     it('falls back to the configured MNO country when no region is passed', function (): void {
         config()->set('mno.country', 'GB');
 
-        $util = \libphonenumber\PhoneNumberUtil::getInstance();
-        $example = $util->getExampleNumberForType('GB', \libphonenumber\PhoneNumberType::MOBILE);
-        $national = $util->format($example, \libphonenumber\PhoneNumberFormat::NATIONAL);
+        $util = libphonenumber\PhoneNumberUtil::getInstance();
+        $example = $util->getExampleNumberForType('GB', libphonenumber\PhoneNumberType::MOBILE);
+        $national = $util->format($example, libphonenumber\PhoneNumberFormat::NATIONAL);
 
         $phone = PhoneNumber::from($national);
 

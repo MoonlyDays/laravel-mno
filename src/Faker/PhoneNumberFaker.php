@@ -6,6 +6,7 @@ namespace MoonlyDays\MNO\Faker;
 
 use Faker\Provider\Base;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use MoonlyDays\MNO\Facades\MNO;
 use MoonlyDays\MNO\Values\PhoneNumber;
 
@@ -26,14 +27,14 @@ class PhoneNumberFaker extends Base
     {
         $countryCode = MNO::countryCode();
         $networkCode = Arr::random(MNO::networkCodes());
-        $subscriberLength = MNO::maxLength() - strlen($networkCode);
+        $subscriberLength = MNO::maxLength() - Str::length((string) $networkCode);
 
         $subscriber = '';
         for ($i = 0; $i < $subscriberLength; $i++) {
             $subscriber .= $this->generator->numberBetween(0, 9);
         }
 
-        return '+' . $countryCode . $networkCode . $subscriber;
+        return '+'.$countryCode.$networkCode.$subscriber;
     }
 
     /**
