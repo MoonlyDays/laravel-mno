@@ -10,14 +10,6 @@ use MoonlyDays\MNO\Casts\PhoneNumberCast;
 use MoonlyDays\MNO\Exceptions\InvalidPhoneNumberException;
 use MoonlyDays\MNO\Values\PhoneNumber;
 
-function castSample(string $region = 'TZ'): string
-{
-    $util = PhoneNumberUtil::getInstance();
-    $example = $util->getExampleNumberForType($region, PhoneNumberType::MOBILE);
-
-    return $util->format($example, PhoneNumberFormat::E164);
-}
-
 describe('PhoneNumberCast::get', function (): void {
     it('returns null when the raw value is null', function (): void {
         $cast = new PhoneNumberCast();
@@ -29,7 +21,7 @@ describe('PhoneNumberCast::get', function (): void {
     it('hydrates a PhoneNumber from a stored E.164 string', function (): void {
         $cast = new PhoneNumberCast();
         $model = new class extends Model {};
-        $e164 = castSample();
+        $e164 = mobileExampleFor('TZ');
 
         $phone = $cast->get($model, 'phone', $e164, []);
 
@@ -56,7 +48,7 @@ describe('PhoneNumberCast::set', function (): void {
     it('accepts a PhoneNumber instance and stores its E.164 form', function (): void {
         $cast = new PhoneNumberCast();
         $model = new class extends Model {};
-        $phone = PhoneNumber::from(castSample());
+        $phone = PhoneNumber::from(mobileExampleFor('TZ'));
 
         expect($cast->set($model, 'phone', $phone, []))->toBe($phone->e164());
     });
@@ -94,7 +86,7 @@ describe('PhoneNumberCast on Eloquent models', function (): void {
             ];
         };
 
-        $e164 = castSample();
+        $e164 = mobileExampleFor('TZ');
         $model->phone = $e164;
 
         expect($model->getAttributes()['phone'])->toBe($e164)
@@ -118,7 +110,7 @@ describe('PhoneNumber as a Castable', function (): void {
             ];
         };
 
-        $e164 = castSample();
+        $e164 = mobileExampleFor('TZ');
         $model->phone = $e164;
 
         expect($model->getAttributes()['phone'])->toBe($e164)

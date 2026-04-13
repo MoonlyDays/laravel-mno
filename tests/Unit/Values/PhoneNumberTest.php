@@ -2,24 +2,8 @@
 
 declare(strict_types=1);
 
-use libphonenumber\PhoneNumberFormat;
-use libphonenumber\PhoneNumberType;
-use libphonenumber\PhoneNumberUtil;
 use MoonlyDays\MNO\Exceptions\InvalidPhoneNumberException;
 use MoonlyDays\MNO\Values\PhoneNumber;
-
-/**
- * Helper: grab a known-valid mobile number (E.164) for a region from libphonenumber.
- */
-function mobileExampleFor(string $region): string
-{
-    $util = PhoneNumberUtil::getInstance();
-    $example = $util->getExampleNumberForType($region, PhoneNumberType::MOBILE);
-
-    expect($example)->not->toBeNull();
-
-    return $util->format($example, PhoneNumberFormat::E164);
-}
 
 describe('PhoneNumber::from', function (): void {
     it('parses a valid E.164 number without a region', function (): void {
@@ -34,9 +18,9 @@ describe('PhoneNumber::from', function (): void {
     });
 
     it('parses a national-format number using a provided region', function (): void {
-        $util = PhoneNumberUtil::getInstance();
-        $example = $util->getExampleNumberForType('GB', PhoneNumberType::MOBILE);
-        $national = $util->format($example, PhoneNumberFormat::NATIONAL);
+        $util = \libphonenumber\PhoneNumberUtil::getInstance();
+        $example = $util->getExampleNumberForType('GB', \libphonenumber\PhoneNumberType::MOBILE);
+        $national = $util->format($example, \libphonenumber\PhoneNumberFormat::NATIONAL);
 
         $phone = PhoneNumber::from($national, 'GB');
 
@@ -47,9 +31,9 @@ describe('PhoneNumber::from', function (): void {
     it('falls back to the configured MNO country when no region is passed', function (): void {
         config()->set('mno.country', 'GB');
 
-        $util = PhoneNumberUtil::getInstance();
-        $example = $util->getExampleNumberForType('GB', PhoneNumberType::MOBILE);
-        $national = $util->format($example, PhoneNumberFormat::NATIONAL);
+        $util = \libphonenumber\PhoneNumberUtil::getInstance();
+        $example = $util->getExampleNumberForType('GB', \libphonenumber\PhoneNumberType::MOBILE);
+        $national = $util->format($example, \libphonenumber\PhoneNumberFormat::NATIONAL);
 
         $phone = PhoneNumber::from($national);
 
@@ -156,5 +140,44 @@ describe('PhoneNumber macroable', function (): void {
         $phone = PhoneNumber::from(mobileExampleFor('TZ'));
 
         expect($phone->shout())->toBe(mb_strtoupper($phone->e164()));
+    });
+});
+
+describe('PhoneNumber::timezones', function (): void {
+    it('returns timezone identifiers for a valid number', function (): void {
+        $phone = PhoneNumber::from(mobileExampleFor('TZ'));
+
+        $timezones = $phone->timezones();
+
+        expect($timezones)->toBeArray()
+            ->and($timezones)->not->toBeEmpty()
+            ->and($timezones)->each->toBeString();
+    });
+
+    it('does not include Etc/Unknown', function (): void {
+        $phone = PhoneNumber::from(mobileExampleFor('TZ'));
+
+        expect($phone->timezones())->not->toContain('Etc/Unknown');
+    });
+
+    it('returns Africa/Dar_es_Salaam for a Tanzanian number', function (): void {
+        $phone = PhoneNumber::from(mobileExampleFor('TZ'));
+
+        expect($phone->timezones())->toContain('Africa/Dar_es_Salaam');
+    });
+
+    it('returns Europe/London for a UK number', function (): void {
+        $phone = PhoneNumber::from(mobileExampleFor('GB'));
+
+        expect($phone->timezones())->toContain('Europe/London');
+    });
+});
+
+describe('PhoneNumber::timezone', function (): void {
+    it('returns the primary timezone as a string', function (): void {
+        $phone = PhoneNumber::from(mobileExampleFor('TZ'));
+
+        expect($phone->timezone())->toBeString()
+            ->and($phone->timezone())->toBe($phone->timezones()[0]);
     });
 });
