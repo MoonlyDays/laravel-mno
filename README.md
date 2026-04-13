@@ -38,19 +38,19 @@ Set up the environment variables:
 MNO_NAME=MTS
 MNO_COUNTRY=RU
 MNO_NETWORK_CODES=910,911,912
-MNO_PHONE_MIN_LENGTH=10
-MNO_PHONE_MAX_LENGTH=10
+MNO_MIN_LENGTH=10
+MNO_MAX_LENGTH=10
 ```
 
-| Variable                | Description                                                                        |
-|-------------------------|------------------------------------------------------------------------------------|
-| `MNO_NAME`              | Name of the mobile network operator                                                |
-| `MNO_COUNTRY`           | ISO 3166-1 alpha-2 country code (e.g., `RU`, `TZ`)                                 |
-| `MNO_NETWORK_CODES`     | Comma-separated National Destination Code (NDC) prefixes for the operator          |
-| `MNO_PHONE_MIN_LENGTH`  | Minimum national number length (optional — inferred from libphonenumber metadata)  |
-| `MNO_PHONE_MAX_LENGTH`  | Maximum national number length (optional — inferred from libphonenumber metadata)  |
+| Variable            | Description                                                                       |
+|---------------------|-----------------------------------------------------------------------------------|
+| `MNO_NAME`          | Name of the mobile network operator                                               |
+| `MNO_COUNTRY`       | ISO 3166-1 alpha-2 country code (e.g., `RU`, `TZ`)                                |
+| `MNO_NETWORK_CODES` | Comma-separated National Destination Code (NDC) prefixes for the operator         |
+| `MNO_MIN_LENGTH`    | Minimum national number length (optional — inferred from libphonenumber metadata) |
+| `MNO_MAX_LENGTH`    | Maximum national number length (optional — inferred from libphonenumber metadata) |
 
-When `MNO_PHONE_MIN_LENGTH` / `MNO_PHONE_MAX_LENGTH` are unset, the package infers the length from libphonenumber
+When `MNO_MIN_LENGTH` / `MNO_MAX_LENGTH` are unset, the package infers the length from libphonenumber
 metadata for the configured country, walking the `number_types` priority list in `config/mno.php`
 (defaults to `Mobile`, then `General`).
 
@@ -73,7 +73,8 @@ $phone = phoneNumber('+79101234567');
 ```
 
 `PhoneNumber` is a lightweight value object wrapping libphonenumber's native `PhoneNumber`. It implements
-`Stringable` (casting to string produces the E.164 form) and uses Laravel's `Macroable` and `Tappable` traits.
+`Stringable` (casting to string produces the E.164 form), `JsonSerializable` (serializes as E.164), and
+`Castable` (can be used directly as an Eloquent cast). It also uses Laravel's `Macroable` and `Tappable` traits.
 
 ### Formatting
 
@@ -149,17 +150,28 @@ PhoneNumberRule::defaults(fn () => (new PhoneNumberRule())
     ->maxLength(10));
 ```
 
+### Request macro
+
+The service provider registers a `phoneNumber` macro on `Illuminate\Http\Request`:
+
+```php
+$phone = $request->phoneNumber('phone');           // PhoneNumber or null
+$phone = $request->phoneNumber('phone', $default); // with fallback
+```
+
 ### Eloquent cast
+
+Since `PhoneNumber` implements `Castable`, you can use it directly as an Eloquent cast. `PhoneNumberCast` is
+also available if you prefer to be explicit:
 
 ```php
 use Illuminate\Database\Eloquent\Model;
-use MoonlyDays\MNO\Casts\PhoneNumberCast;
 use MoonlyDays\MNO\Values\PhoneNumber;
 
 class User extends Model
 {
     protected $casts = [
-        'phone' => PhoneNumberCast::class,
+        'phone' => PhoneNumber::class, // or PhoneNumberCast::class
     ];
 }
 
@@ -191,6 +203,45 @@ MNO::numberTypes();    // array<NumberType>
 
 The facade resolves the `MnoService` singleton, which is also bound to the container alias `mno` and can be
 injected directly.
+
+### Country and Carrier value objects
+
+```php
+use MoonlyDays\MNO\Values\Country;
+use MoonlyDays\MNO\Values\Carrier;
+
+// Country — wraps an ISO 3166-1 alpha-2 code
+$country = Country::from('RU');       // throws InvalidCountryException on unknown code
+$country = Country::tryFrom('RU');    // returns null on failure
+
+$country->isoCode();               // "RU"
+$country->countryCode();           // 7
+$country->name();                  // "Russia"
+$country->exampleNumber();         // PhoneNumber|null
+$country->isMobileNumberPortable(); // bool
+$country->carriers();              // array<string, Carrier> — all carriers with allocations
+
+// Carrier — a carrier within a country
+$carrier = Carrier::from('RU', 'MTS');    // throws InvalidCarrierException on miss
+$carrier = Carrier::tryFrom('RU', 'MTS'); // returns null on failure
+
+$carrier->name();             // "MTS"
+$carrier->country();          // Country instance
+$carrier->networkCodes();     // ["910", "911", "912"] — NDC prefixes
+$carrier->prefixes();         // ["7910", "7911", "7912"] — with country code
+$carrier->matches($phone);    // true if the phone number belongs to this carrier
+$carrier->owns('910');        // true if the carrier owns this NDC
+```
+
+### Artisan command
+
+Inspect the configured MNO, a country, or a specific carrier:
+
+```bash
+php artisan mno:show              # show configured operator details
+php artisan mno:show RU           # show country info with carrier list
+php artisan mno:show RU MTS       # show carrier details with network codes
+```
 
 ### Extending via macros
 

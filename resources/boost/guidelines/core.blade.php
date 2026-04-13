@@ -10,17 +10,19 @@ Phone number parsing, validation, and normalization for Laravel MNOs. Namespace:
 - **Format:** `->e164()`, `->national()`, `->international()`. Casting and `__toString` use E.164.
 - **Extract:** `->countryCode()`, `->countryIso()`, `->nationalNumber()`, `->networkCode()`, `->subscriberNumber()`.
 - **Validate:** `Rule::phoneNumber()` for config defaults, or `(new PhoneNumberRule())->country()->networkCodes()->minLength()->maxLength()` for custom rules.
-- **Cast:** `PhoneNumberCast::class` on Eloquent models. Stores E.164, hydrates as `PhoneNumber`.
-- **Config (facade):** `MNO::country()`, `MNO::networkCodes()`, `MNO::minLength()`, `MNO::maxLength()`. Lengths auto-infer from libphonenumber metadata when not set.
+- **Cast:** `PhoneNumberCast::class` on Eloquent models, or use `PhoneNumber::class` directly (implements `Castable`). Stores E.164, hydrates as `PhoneNumber`.
+- **Config (facade):** `MNO::country()`, `MNO::networkCodes()`, `MNO::minLength()`, `MNO::maxLength()`, `MNO::numberTypes()`. Lengths auto-infer from libphonenumber metadata when not set.
 - **Helper:** `phoneNumber($number, $region)` — equivalent to `PhoneNumber::from()`.
+- **Request:** `$request->phoneNumber($key)` — macro to extract and parse a phone number from a request.
 - **Resource:** `PhoneNumberFormatResource::make()` exposes `{countryCode, country, minLength, maxLength, networkCodes}` as JSON.
+- **Command:** `php artisan mno:show [country] [carrier]` — inspect the configured MNO, a country, or a specific carrier.
 
 ### Rules
 
 - Store phone numbers as E.164 in the database. Never store national format.
-- Use `PhoneNumberCast` for phone columns — do not manually format on get/set.
+- Use `PhoneNumberCast` (or `PhoneNumber::class` directly via `Castable`) for phone columns — do not manually format on get/set.
 - Use `Rule::phoneNumber()` (or `PhoneNumberRule::default()`) unless you need custom constraints.
 - A configured `mno.country` is required for length inference. Without it, `PhoneNumberLengthException` is thrown.
 - `PhoneNumber` is immutable — create a new instance rather than trying to modify one.
-- The config file is `config/operator.php` but keys live under the `mno.*` namespace (e.g., `config('mno.country')`, `config('mno.network_codes')`, `config('mno.validation.min_length')`).
-- Env vars are prefixed `MNO_*` (e.g., `MNO_COUNTRY`, `MNO_NETWORK_CODES`, `MNO_PHONE_MIN_LENGTH`).
+- The config file is `config/mno.php` and keys live under the `mno.*` namespace (e.g., `config('mno.country')`, `config('mno.network_codes')`, `config('mno.min_length')`).
+- Env vars are prefixed `MNO_*` (e.g., `MNO_COUNTRY`, `MNO_NETWORK_CODES`, `MNO_MIN_LENGTH`).
