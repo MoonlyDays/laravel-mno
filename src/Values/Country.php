@@ -12,7 +12,10 @@ use libphonenumber\PhoneMetadata;
 use libphonenumber\PhoneNumber as BasePhoneNumber;
 use libphonenumber\PhoneNumberDesc;
 use libphonenumber\PhoneNumberFormat;
+use libphonenumber\PhoneNumberToTimeZonesMapper;
 use libphonenumber\PhoneNumberUtil;
+use libphonenumber\prefixmapper\PrefixTimeZonesMap;
+use libphonenumber\timezone\data\Map;
 use MoonlyDays\MNO\Enums\NumberType;
 use MoonlyDays\MNO\Exceptions\InvalidCarrierException;
 use MoonlyDays\MNO\Exceptions\InvalidCountryException;
@@ -152,6 +155,34 @@ class Country implements Stringable
     public function hasCarrier(string $name): bool
     {
         return $this->tryCarrier($name) instanceof Carrier;
+    }
+
+    /**
+     * Get all IANA timezone identifiers associated with this country.
+     *
+     * @return array<string>
+     */
+    public function timezones(): array
+    {
+        $number = new BasePhoneNumber();
+        $number->setCountryCode($this->countryCode());
+
+        $map = new PrefixTimeZonesMap(Map::DATA);
+        $timezones = $map->lookupCountryLevelTimeZonesForNumber($number);
+
+        return array_values(array_filter(
+            $timezones,
+            static fn (string $tz): bool => $tz !== PhoneNumberToTimeZonesMapper::UNKNOWN_TIMEZONE,
+        ));
+    }
+
+    /**
+     * Get the primary IANA timezone identifier for this country,
+     * or null if the timezone cannot be determined.
+     */
+    public function timezone(): ?string
+    {
+        return $this->timezones()[0] ?? null;
     }
 
     /**
