@@ -6,6 +6,7 @@ namespace MoonlyDays\MNO\Faker;
 
 use Faker\Provider\Base;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use libphonenumber\NumberParseException;
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberUtil;
@@ -45,7 +46,7 @@ class PhoneNumberFaker extends Base
         $maxLength = MNO::maxLength();
 
         foreach ($networkCodes as $networkCode) {
-            $subscriberLength = $maxLength - mb_strlen((string) $networkCode);
+            $subscriberLength = $maxLength - Str::length((string) $networkCode);
 
             for ($attempt = 0; $attempt < 5; $attempt++) {
                 $subscriber = '';
