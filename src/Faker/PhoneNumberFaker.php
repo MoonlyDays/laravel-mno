@@ -87,8 +87,8 @@ class PhoneNumberFaker extends Base
                 max($minLength, $networkCodeLength + 1),
                 $maxLength,
             );
-            $subscriberLength = $nsnLength - $networkCodeLength;
 
+            $subscriberLength = $nsnLength - $networkCodeLength;
             for ($attempt = 0; $attempt < self::MAX_ATTEMPTS_PER_NETWORK_CODE; $attempt++) {
                 $subscriber = '';
                 for ($i = 0; $i < $subscriberLength; $i++) {
