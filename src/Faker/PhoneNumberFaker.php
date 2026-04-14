@@ -8,7 +8,6 @@ use Faker\Provider\Base;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use libphonenumber\NumberParseException;
-use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberUtil;
 use MoonlyDays\MNO\Facades\MNO;
 use MoonlyDays\MNO\Values\PhoneNumber;
@@ -17,7 +16,7 @@ use RuntimeException;
 class PhoneNumberFaker extends Base
 {
     /**
-     * Generate a random PhoneNumber value object for the configured MNO.
+     * @throws NumberParseException
      */
     public function phoneNumberObject(): PhoneNumber
     {
@@ -25,9 +24,7 @@ class PhoneNumberFaker extends Base
     }
 
     /**
-     * Generate a random phone number string (E.164) for the configured MNO.
-     *
-     * Overrides Faker's built-in phoneNumber() to emit a number the MNO accepts.
+     * @throws NumberParseException
      */
     public function phoneNumber(): string
     {
@@ -35,7 +32,7 @@ class PhoneNumberFaker extends Base
     }
 
     /**
-     * Generate a random phone number in E.164 format (e.g., "+255712345678").
+     * @throws NumberParseException
      */
     public function e164PhoneNumber(): string
     {
@@ -43,10 +40,12 @@ class PhoneNumberFaker extends Base
         $countryCode = MNO::countryCode();
         $region = MNO::countryIsoCode();
         $networkCodes = Arr::shuffle(MNO::networkCodes());
+        $minLength = MNO::minLength();
         $maxLength = MNO::maxLength();
 
         foreach ($networkCodes as $networkCode) {
-            $subscriberLength = $maxLength - Str::length((string) $networkCode);
+            $nsnLength = $this->generator->numberBetween($minLength, $maxLength);
+            $subscriberLength = $nsnLength - Str::length((string) $networkCode);
 
             for ($attempt = 0; $attempt < 5; $attempt++) {
                 $subscriber = '';
@@ -56,28 +55,19 @@ class PhoneNumberFaker extends Base
 
                 $number = '+'.$countryCode.$networkCode.$subscriber;
 
-                try {
-                    if ($util->isValidNumber($util->parse($number, $region))) {
-                        return $number;
-                    }
-                } catch (NumberParseException) {
-                    break;
+                if ($util->isValidNumber($util->parse($number, $region))) {
+                    return $number;
                 }
             }
         }
 
-        $example = $util->getExampleNumber($region);
-        if ($example === null) {
-            throw new RuntimeException(
-                "Unable to generate a phone number: no example number for region [{$region}]."
-            );
-        }
-
-        return $util->format($example, PhoneNumberFormat::E164);
+        throw new RuntimeException(
+            "Unable to generate a valid phone number for region [{$region}] within the configured MNO constraints."
+        );
     }
 
     /**
-     * Generate a random phone number in national format (e.g., "0712 345 678").
+     * @throws NumberParseException
      */
     public function nationalPhoneNumber(): string
     {
@@ -85,7 +75,7 @@ class PhoneNumberFaker extends Base
     }
 
     /**
-     * Generate a random phone number in international format (e.g., "+255 712 345 678").
+     * @throws NumberParseException
      */
     public function internationalPhoneNumber(): string
     {
