@@ -17,7 +17,7 @@ it('registers the faker provider via the service provider', function (): void {
 it('generates a valid PhoneNumber value object', function (): void {
     $faker = app(FakerGenerator::class);
 
-    $phone = $faker->phoneNumber();
+    $phone = $faker->phoneNumberObject();
 
     expect($phone)->toBeInstanceOf(PhoneNumber::class)
         ->and($phone->countryIso())->toBe('TZ');

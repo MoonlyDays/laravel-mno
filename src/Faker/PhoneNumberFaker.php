@@ -5,21 +5,32 @@ declare(strict_types=1);
 namespace MoonlyDays\MNO\Faker;
 
 use Faker\Provider\Base;
-use Illuminate\Support\Str;
+use Illuminate\Support\Arr;
 use libphonenumber\NumberParseException;
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberUtil;
 use MoonlyDays\MNO\Facades\MNO;
 use MoonlyDays\MNO\Values\PhoneNumber;
+use RuntimeException;
 
 class PhoneNumberFaker extends Base
 {
     /**
      * Generate a random PhoneNumber value object for the configured MNO.
      */
-    public function phoneNumber(): PhoneNumber
+    public function phoneNumberObject(): PhoneNumber
     {
         return PhoneNumber::from($this->e164PhoneNumber());
+    }
+
+    /**
+     * Generate a random phone number string (E.164) for the configured MNO.
+     *
+     * Overrides Faker's built-in phoneNumber() to emit a number the MNO accepts.
+     */
+    public function phoneNumber(): string
+    {
+        return $this->e164PhoneNumber();
     }
 
     /**
@@ -30,34 +41,36 @@ class PhoneNumberFaker extends Base
         $util = PhoneNumberUtil::getInstance();
         $countryCode = MNO::countryCode();
         $region = MNO::countryIsoCode();
-        $networkCodes = MNO::networkCodes();
+        $networkCodes = Arr::shuffle(MNO::networkCodes());
         $maxLength = MNO::maxLength();
 
-        // Shuffle network codes to avoid bias when some codes produce invalid numbers.
-        shuffle($networkCodes);
-
         foreach ($networkCodes as $networkCode) {
-            $subscriberLength = $maxLength - Str::length((string) $networkCode);
+            $subscriberLength = $maxLength - mb_strlen((string) $networkCode);
 
-            $subscriber = '';
-            for ($i = 0; $i < $subscriberLength; $i++) {
-                $subscriber .= $this->generator->numberBetween(0, 9);
-            }
-
-            $number = '+'.$countryCode.$networkCode.$subscriber;
-
-            try {
-                $parsed = $util->parse($number, $region);
-                if ($util->isValidNumber($parsed)) {
-                    return $number;
+            for ($attempt = 0; $attempt < 5; $attempt++) {
+                $subscriber = '';
+                for ($i = 0; $i < $subscriberLength; $i++) {
+                    $subscriber .= $this->generator->numberBetween(0, 9);
                 }
-            } catch (NumberParseException) {
-                continue;
+
+                $number = '+'.$countryCode.$networkCode.$subscriber;
+
+                try {
+                    if ($util->isValidNumber($util->parse($number, $region))) {
+                        return $number;
+                    }
+                } catch (NumberParseException) {
+                    break;
+                }
             }
         }
 
-        // Fallback: use libphonenumber's example number for the region.
         $example = $util->getExampleNumber($region);
+        if ($example === null) {
+            throw new RuntimeException(
+                "Unable to generate a phone number: no example number for region [{$region}]."
+            );
+        }
 
         return $util->format($example, PhoneNumberFormat::E164);
     }
@@ -67,7 +80,7 @@ class PhoneNumberFaker extends Base
      */
     public function nationalPhoneNumber(): string
     {
-        return $this->phoneNumber()->national();
+        return $this->phoneNumberObject()->national();
     }
 
     /**
@@ -75,6 +88,6 @@ class PhoneNumberFaker extends Base
      */
     public function internationalPhoneNumber(): string
     {
-        return $this->phoneNumber()->international();
+        return $this->phoneNumberObject()->international();
     }
 }
