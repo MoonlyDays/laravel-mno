@@ -86,6 +86,17 @@ class PhoneNumber implements Castable, JsonSerializable, Stringable
     }
 
     /**
+     * Converts the phone number to an integer representation by removing the plus sign
+     * from its E.164 formatted string and casting it to an integer.
+     *
+     * @return int The integer representation of the phone number.
+     */
+    public function toInteger(): int
+    {
+        return (int) (Str::replaceStart(PhoneNumberUtil::PLUS_SIGN, '', $this->e164()));
+    }
+
+    /**
      * Get the number in national format (e.g., 0712 345 678).
      */
     public function national(): string
