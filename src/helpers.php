@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use MoonlyDays\MNO\Values\PhoneNumber;
+use MoonlyDays\MNO\Values\Msisdn;
 
-if (! function_exists('phoneNumber')) {
-    function phoneNumber(string $phoneNumber, ?string $region = null): PhoneNumber
+if (! function_exists('msisdn')) {
+    function msisdn(string $msisdn, ?string $region = null): Msisdn
     {
-        return PhoneNumber::from($phoneNumber, $region);
+        return Msisdn::from($msisdn, $region);
     }
 }

@@ -5,17 +5,17 @@ declare(strict_types=1);
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberType;
 use libphonenumber\PhoneNumberUtil;
-use MoonlyDays\MNO\Rules\PhoneNumberRule;
+use MoonlyDays\MNO\Rules\MsisdnRule;
 use MoonlyDays\MNO\Tests\TestCase;
-use MoonlyDays\MNO\Values\PhoneNumber;
+use MoonlyDays\MNO\Values\Msisdn;
 
 uses(TestCase::class)->in('Unit', 'Feature');
 
 // Reset PhoneNumberRule/PhoneNumber static state between tests so one
 // test's macro or default resolver cannot leak into the next.
 uses()->afterEach(function (): void {
-    PhoneNumberRule::defaults(null);
-    PhoneNumber::flushMacros();
+    MsisdnRule::defaults(null);
+    Msisdn::flushMacros();
 })->in('Unit', 'Feature');
 
 /**

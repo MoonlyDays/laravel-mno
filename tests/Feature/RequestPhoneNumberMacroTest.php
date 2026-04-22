@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberType;
 use libphonenumber\PhoneNumberUtil;
-use MoonlyDays\MNO\Values\PhoneNumber;
+use MoonlyDays\MNO\Values\Msisdn;
 
 describe('Request::phoneNumber macro', function (): void {
     it('returns a PhoneNumber for a valid value on the request', function (): void {
@@ -15,7 +15,7 @@ describe('Request::phoneNumber macro', function (): void {
 
         $phone = $request->phoneNumber('phone');
 
-        expect($phone)->toBeInstanceOf(PhoneNumber::class)
+        expect($phone)->toBeInstanceOf(Msisdn::class)
             ->and($phone->e164())->toBe($e164);
     });
 
@@ -46,14 +46,14 @@ describe('Request::phoneNumber macro', function (): void {
 
     it('returns the provided default when the key is not filled', function (): void {
         $request = Request::create('/', 'GET');
-        $fallback = PhoneNumber::from(mobileExampleFor('GB'));
+        $fallback = Msisdn::from(mobileExampleFor('GB'));
 
         expect($request->phoneNumber('phone', $fallback))->toBe($fallback);
     });
 
     it('resolves a closure default lazily when the key is not filled', function (): void {
         $request = Request::create('/', 'GET');
-        $fallback = PhoneNumber::from(mobileExampleFor('GB'));
+        $fallback = Msisdn::from(mobileExampleFor('GB'));
 
         $result = $request->phoneNumber('phone', fn () => $fallback);
 
@@ -84,7 +84,7 @@ describe('Request::phoneNumber macro', function (): void {
             json_encode(['phone' => $e164]),
         );
 
-        expect($request->phoneNumber('phone'))->toBeInstanceOf(PhoneNumber::class)
+        expect($request->phoneNumber('phone'))->toBeInstanceOf(Msisdn::class)
             ->and($request->phoneNumber('phone')->e164())->toBe($e164);
     });
 });

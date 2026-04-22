@@ -3,15 +3,15 @@
 declare(strict_types=1);
 
 use Faker\Generator as FakerGenerator;
-use MoonlyDays\MNO\Faker\PhoneNumberFaker;
-use MoonlyDays\MNO\Values\PhoneNumber;
+use MoonlyDays\MNO\Faker\MsisdnFaker;
+use MoonlyDays\MNO\Values\Msisdn;
 
 it('registers the faker provider via the service provider', function (): void {
     $faker = app(FakerGenerator::class);
 
     $providers = array_map('get_class', $faker->getProviders());
 
-    expect($providers)->toContain(PhoneNumberFaker::class);
+    expect($providers)->toContain(MsisdnFaker::class);
 });
 
 it('generates a valid PhoneNumber value object', function (): void {
@@ -19,7 +19,7 @@ it('generates a valid PhoneNumber value object', function (): void {
 
     $phone = $faker->phoneNumberObject();
 
-    expect($phone)->toBeInstanceOf(PhoneNumber::class)
+    expect($phone)->toBeInstanceOf(Msisdn::class)
         ->and($phone->countryIso())->toBe('TZ');
 });
 
@@ -29,7 +29,7 @@ it('generates an E.164 formatted string', function (): void {
     $e164 = $faker->e164PhoneNumber();
 
     expect($e164)->toStartWith('+255')
-        ->and(PhoneNumber::tryFrom($e164))->not->toBeNull();
+        ->and(Msisdn::tryFrom($e164))->not->toBeNull();
 });
 
 it('generates a national formatted string', function (): void {

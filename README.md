@@ -59,15 +59,15 @@ metadata for the configured country, walking the `number_types` priority list in
 ### Creating a PhoneNumber
 
 ```php
-use MoonlyDays\MNO\Values\PhoneNumber;
+use MoonlyDays\MNO\Values\Msisdn;
 
 // Parse, throwing InvalidPhoneNumberException on failure
-$phone = PhoneNumber::from('+79101234567');
-$phone = PhoneNumber::from('9101234567', 'RU');
-$phone = PhoneNumber::from(79101234567, 'RU'); // integers are accepted
+$phone = Msisdn::from('+79101234567');
+$phone = Msisdn::from('9101234567', 'RU');
+$phone = Msisdn::from(79101234567, 'RU'); // integers are accepted
 
 // Safe parse, returning null on failure
-$phone = PhoneNumber::tryFrom('invalid'); // null
+$phone = Msisdn::tryFrom('invalid'); // null
 
 // Global helper
 $phone = phoneNumber('+79101234567');
@@ -125,13 +125,13 @@ $request->validate([
 ```
 
 ```php
-use MoonlyDays\MNO\Rules\PhoneNumberRule;
+use MoonlyDays\MNO\Rules\MsisdnRule;
 
 // Customize the rule fluently
 $request->validate([
     'phone' => [
         'required',
-        (new PhoneNumberRule())
+        (new MsisdnRule())
             ->country('RU', 'BY', 'KZ')
             ->networkCodes('910', '911')
             ->minLength(10)
@@ -153,9 +153,9 @@ Validation failures translate the following keys, which you can publish or overr
 `PhoneNumberRule::defaults()` lets you swap in a custom resolver used by `Rule::phoneNumber()`:
 
 ```php
-use MoonlyDays\MNO\Rules\PhoneNumberRule;
+use MoonlyDays\MNO\Rules\MsisdnRule;
 
-PhoneNumberRule::defaults(fn () => (new PhoneNumberRule())
+MsisdnRule::defaults(fn () => (new MsisdnRule())
     ->country('RU')
     ->minLength(10)
     ->maxLength(10));
@@ -177,19 +177,19 @@ also available if you prefer to be explicit:
 
 ```php
 use Illuminate\Database\Eloquent\Model;
-use MoonlyDays\MNO\Values\PhoneNumber;
+use MoonlyDays\MNO\Values\Msisdn;
 
 class User extends Model
 {
     protected $casts = [
-        'phone' => PhoneNumber::class, // or PhoneNumberCast::class
+        'phone' => Msisdn::class, // or PhoneNumberCast::class
     ];
 }
 
 $user->phone = '+79101234567';
 $user->save(); // Stored as unsigned bigInteger: 79101234567
 
-$user->phone instanceof PhoneNumber; // true
+$user->phone instanceof Msisdn; // true
 $user->phone->national();            // "8 (910) 123-45-67"
 ```
 
@@ -233,10 +233,10 @@ $faker->internationalPhoneNumber();// "+7 910 123-45-67"
 that need to tell clients about expected number shape:
 
 ```php
-use MoonlyDays\MNO\Resources\PhoneNumberFormatResource;
+use MoonlyDays\MNO\Resources\MsisdnFormatResource;
 
 return [
-    'format' => PhoneNumberFormatResource::make(),
+    'format' => MsisdnFormatResource::make(),
 ];
 // {
 //   "countryCode": 7,
@@ -311,12 +311,12 @@ php artisan mno:show RU MTS       # show carrier details with network codes
 `PhoneNumber` uses the `Macroable` trait, so you can add project-specific helpers:
 
 ```php
-use MoonlyDays\MNO\Values\PhoneNumber;
+use MoonlyDays\MNO\Values\Msisdn;
 
-PhoneNumber::macro('isRussian', function (): bool {
-    /** @var PhoneNumber $this */
+Msisdn::macro('isRussian', function (): bool {
+    /** @var Msisdn $this */
     return $this->countryIso() === 'RU';
 });
 
-PhoneNumber::from('+79101234567')->isRussian(); // true
+Msisdn::from('+79101234567')->isRussian(); // true
 ```

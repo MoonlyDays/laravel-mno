@@ -8,7 +8,7 @@ use Illuminate\Validation\Rule;
 use libphonenumber\PhoneNumberToCarrierMapper;
 use libphonenumber\PhoneNumberUtil;
 use MoonlyDays\MNO\MnoService;
-use MoonlyDays\MNO\Rules\PhoneNumberRule;
+use MoonlyDays\MNO\Rules\MsisdnRule;
 
 it('publishes the operator config under the mno namespace', function (): void {
     expect(config('mno.country'))->toBe('TZ')
@@ -29,7 +29,7 @@ it('binds PhoneNumberToCarrierMapper to the shared instance', function (): void 
 });
 
 it('registers the Rule::phoneNumber macro', function (): void {
-    expect(Rule::phoneNumber())->toBeInstanceOf(PhoneNumberRule::class);
+    expect(Rule::phoneNumber())->toBeInstanceOf(MsisdnRule::class);
 });
 
 it('registers the Request::phoneNumber macro', function (): void {

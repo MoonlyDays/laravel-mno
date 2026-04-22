@@ -116,7 +116,7 @@ class Carrier implements Stringable
      * current network — use $carrier->country()->isMobileNumberPortable() to
      * decide how much to trust the result.
      */
-    public function matches(PhoneNumber $number): bool
+    public function matches(Msisdn $number): bool
     {
         if ($number->countryIso() !== $this->country->isoCode()) {
             return false;

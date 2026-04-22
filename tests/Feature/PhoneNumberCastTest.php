@@ -7,9 +7,9 @@ use Illuminate\Support\Str;
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberType;
 use libphonenumber\PhoneNumberUtil;
-use MoonlyDays\MNO\Casts\PhoneNumberCast;
-use MoonlyDays\MNO\Exceptions\InvalidPhoneNumberException;
-use MoonlyDays\MNO\Values\PhoneNumber;
+use MoonlyDays\MNO\Casts\MsisdnCast;
+use MoonlyDays\MNO\Exceptions\InvalidMsisdnException;
+use MoonlyDays\MNO\Values\Msisdn;
 
 function e164ToInt(string $e164): int
 {
@@ -18,62 +18,62 @@ function e164ToInt(string $e164): int
 
 describe('PhoneNumberCast::get', function (): void {
     it('returns null when the raw value is null', function (): void {
-        $cast = new PhoneNumberCast();
+        $cast = new MsisdnCast();
         $model = new class extends Model {};
 
         expect($cast->get($model, 'phone', null, []))->toBeNull();
     });
 
     it('hydrates a PhoneNumber from a stored E.164 string', function (): void {
-        $cast = new PhoneNumberCast();
+        $cast = new MsisdnCast();
         $model = new class extends Model {};
         $e164 = mobileExampleFor('TZ');
 
         $phone = $cast->get($model, 'phone', $e164, []);
 
-        expect($phone)->toBeInstanceOf(PhoneNumber::class)
+        expect($phone)->toBeInstanceOf(Msisdn::class)
             ->and($phone->e164())->toBe($e164);
     });
 
     it('hydrates a PhoneNumber from a stored integer', function (): void {
         config()->set('mno.country', 'TZ');
-        $cast = new PhoneNumberCast();
+        $cast = new MsisdnCast();
         $model = new class extends Model {};
         $e164 = mobileExampleFor('TZ');
         $int = e164ToInt($e164);
 
         $phone = $cast->get($model, 'phone', $int, []);
 
-        expect($phone)->toBeInstanceOf(PhoneNumber::class)
+        expect($phone)->toBeInstanceOf(Msisdn::class)
             ->and($phone->e164())->toBe($e164);
     });
 
     it('throws on invalid stored data', function (): void {
-        $cast = new PhoneNumberCast();
+        $cast = new MsisdnCast();
         $model = new class extends Model {};
 
         $cast->get($model, 'phone', 'garbage', []);
-    })->throws(InvalidPhoneNumberException::class);
+    })->throws(InvalidMsisdnException::class);
 });
 
 describe('PhoneNumberCast::set', function (): void {
     it('returns null when the incoming value is null', function (): void {
-        $cast = new PhoneNumberCast();
+        $cast = new MsisdnCast();
         $model = new class extends Model {};
 
         expect($cast->set($model, 'phone', null, []))->toBeNull();
     });
 
     it('accepts a PhoneNumber instance and stores its E.164 form (without plus)', function (): void {
-        $cast = new PhoneNumberCast();
+        $cast = new MsisdnCast();
         $model = new class extends Model {};
-        $phone = PhoneNumber::from(mobileExampleFor('TZ'));
+        $phone = Msisdn::from(mobileExampleFor('TZ'));
 
         expect($cast->set($model, 'phone', $phone, []))->toBe($phone->toInteger());
     });
 
     it('accepts a raw string and normalises it to E.164 (without plus)', function (): void {
-        $cast = new PhoneNumberCast();
+        $cast = new MsisdnCast();
         $model = new class extends Model {};
 
         $util = PhoneNumberUtil::getInstance();
@@ -88,7 +88,7 @@ describe('PhoneNumberCast::set', function (): void {
 
     it('accepts an integer and stores it as an integer', function (): void {
         config()->set('mno.country', 'TZ');
-        $cast = new PhoneNumberCast();
+        $cast = new MsisdnCast();
         $model = new class extends Model {};
         $e164 = mobileExampleFor('TZ');
         $int = e164ToInt($e164);
@@ -97,11 +97,11 @@ describe('PhoneNumberCast::set', function (): void {
     });
 
     it('throws on invalid string input', function (): void {
-        $cast = new PhoneNumberCast();
+        $cast = new MsisdnCast();
         $model = new class extends Model {};
 
         $cast->set($model, 'phone', 'not-a-number', []);
-    })->throws(InvalidPhoneNumberException::class);
+    })->throws(InvalidMsisdnException::class);
 });
 
 describe('PhoneNumberCast on Eloquent models', function (): void {
@@ -111,7 +111,7 @@ describe('PhoneNumberCast on Eloquent models', function (): void {
             protected $guarded = [];
 
             protected $casts = [
-                'phone' => PhoneNumberCast::class,
+                'phone' => MsisdnCast::class,
             ];
         };
 
@@ -119,7 +119,7 @@ describe('PhoneNumberCast on Eloquent models', function (): void {
         $model->phone = $e164;
 
         expect($model->getAttributes()['phone'])->toBe(e164ToInt($e164))
-            ->and($model->phone)->toBeInstanceOf(PhoneNumber::class)
+            ->and($model->phone)->toBeInstanceOf(Msisdn::class)
             ->and($model->phone->e164())->toBe($e164);
     });
 
@@ -131,21 +131,21 @@ describe('PhoneNumberCast on Eloquent models', function (): void {
             protected $guarded = [];
 
             protected $casts = [
-                'phone' => PhoneNumberCast::class,
+                'phone' => MsisdnCast::class,
             ];
         };
 
         $e164 = mobileExampleFor('TZ');
         $model->setRawAttributes(['phone' => e164ToInt($e164)], true);
 
-        expect($model->phone)->toBeInstanceOf(PhoneNumber::class)
+        expect($model->phone)->toBeInstanceOf(Msisdn::class)
             ->and($model->phone->e164())->toBe($e164);
     });
 });
 
 describe('PhoneNumber as a Castable', function (): void {
     it('resolves to PhoneNumberCast via castUsing()', function (): void {
-        expect(PhoneNumber::castUsing([]))->toBe(PhoneNumberCast::class);
+        expect(Msisdn::castUsing([]))->toBe(MsisdnCast::class);
     });
 
     it('can be used directly as the cast class on an Eloquent model', function (): void {
@@ -154,7 +154,7 @@ describe('PhoneNumber as a Castable', function (): void {
             protected $guarded = [];
 
             protected $casts = [
-                'phone' => PhoneNumber::class,
+                'phone' => Msisdn::class,
             ];
         };
 
@@ -162,7 +162,7 @@ describe('PhoneNumber as a Castable', function (): void {
         $model->phone = $e164;
 
         expect($model->getAttributes()['phone'])->toBe(e164ToInt($e164))
-            ->and($model->phone)->toBeInstanceOf(PhoneNumber::class)
+            ->and($model->phone)->toBeInstanceOf(Msisdn::class)
             ->and($model->phone->e164())->toBe($e164);
     });
 });

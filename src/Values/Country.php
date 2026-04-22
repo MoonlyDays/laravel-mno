@@ -199,7 +199,7 @@ class Country implements Stringable
     /**
      * Get an example phone number for this country if libphonenumber has one.
      */
-    public function exampleNumber(): ?PhoneNumber
+    public function exampleNumber(): ?Msisdn
     {
         $example = $this->phoneNumberUtil->getExampleNumber($this->isoCode);
 
@@ -207,7 +207,7 @@ class Country implements Stringable
             return null;
         }
 
-        return PhoneNumber::tryFrom(
+        return Msisdn::tryFrom(
             $this->phoneNumberUtil->format($example, PhoneNumberFormat::E164),
         );
     }

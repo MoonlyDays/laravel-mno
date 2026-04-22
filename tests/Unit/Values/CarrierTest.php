@@ -5,7 +5,7 @@ declare(strict_types=1);
 use MoonlyDays\MNO\Exceptions\InvalidCarrierException;
 use MoonlyDays\MNO\Values\Carrier;
 use MoonlyDays\MNO\Values\Country;
-use MoonlyDays\MNO\Values\PhoneNumber;
+use MoonlyDays\MNO\Values\Msisdn;
 
 describe('Carrier construction', function (): void {
     it('can be looked up via Carrier::from with an ISO string', function (): void {
@@ -58,21 +58,21 @@ describe('Carrier properties', function (): void {
 describe('Carrier::matches', function (): void {
     it('matches a Vodacom TZ number', function (): void {
         $carrier = Carrier::from('TZ', 'Vodacom');
-        $number = PhoneNumber::from('+255745123456');
+        $number = Msisdn::from('+255745123456');
 
         expect($carrier->matches($number))->toBeTrue();
     });
 
     it('does not match a number from a different carrier in the same country', function (): void {
         $vodacom = Carrier::from('TZ', 'Vodacom');
-        $airtelNumber = PhoneNumber::from('+255685123456'); // 68 belongs to Airtel in TZ
+        $airtelNumber = Msisdn::from('+255685123456'); // 68 belongs to Airtel in TZ
 
         expect($vodacom->matches($airtelNumber))->toBeFalse();
     });
 
     it('does not match a number from a different country', function (): void {
         $carrier = Carrier::from('TZ', 'Vodacom');
-        $ukNumber = PhoneNumber::from('+447400123456');
+        $ukNumber = Msisdn::from('+447400123456');
 
         expect($carrier->matches($ukNumber))->toBeFalse();
     });

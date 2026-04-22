@@ -12,9 +12,9 @@ use Illuminate\Validation\Rule;
 use libphonenumber\PhoneNumberToCarrierMapper;
 use libphonenumber\PhoneNumberUtil;
 use MoonlyDays\MNO\Console\Commands\ShowCommand;
-use MoonlyDays\MNO\Faker\PhoneNumberFaker;
-use MoonlyDays\MNO\Rules\PhoneNumberRule;
-use MoonlyDays\MNO\Values\PhoneNumber;
+use MoonlyDays\MNO\Faker\MsisdnFaker;
+use MoonlyDays\MNO\Rules\MsisdnRule;
+use MoonlyDays\MNO\Values\Msisdn;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -33,16 +33,16 @@ class MnoServiceProvider extends PackageServiceProvider
         $this->app->alias(MnoService::class, 'mno');
 
         $this->app->resolving(FakerGenerator::class, function (FakerGenerator $faker): void {
-            $faker->addProvider(new PhoneNumberFaker($faker));
+            $faker->addProvider(new MsisdnFaker($faker));
         });
 
-        Rule::macro('phoneNumber', fn () => PhoneNumberRule::default());
+        Rule::macro('phoneNumber', fn () => MsisdnRule::default());
         Request::macro('phoneNumber', function (string $key, mixed $default = null): mixed {
             if ($this->isNotFilled($key)) {
                 return value($default);
             }
 
-            return PhoneNumber::tryFrom($this->data($key)) ?: value($default);
+            return Msisdn::tryFrom($this->data($key)) ?: value($default);
         });
 
         Blueprint::macro('phoneNumber', fn (string $column): ColumnDefinition => $this->unsignedBigInteger($column));

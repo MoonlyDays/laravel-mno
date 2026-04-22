@@ -13,6 +13,8 @@ use Giggsey\Locale\Locale;
  * classes so the rest of the package does not depend on their layout.
  * If upstream changes the class naming or the ::DATA contract, only
  * this file needs to change.
+ *
+ * @internal
  */
 class CarrierDataRepository
 {

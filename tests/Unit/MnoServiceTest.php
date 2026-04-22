@@ -7,7 +7,7 @@ use MoonlyDays\MNO\Enums\NumberType;
 use MoonlyDays\MNO\Exceptions\InvalidCountryException;
 use MoonlyDays\MNO\Facades\MNO;
 use MoonlyDays\MNO\MnoService;
-use MoonlyDays\MNO\Values\PhoneNumber;
+use MoonlyDays\MNO\Values\Msisdn;
 
 dataset('countries', fn () => PhoneNumberUtil::getInstance()->getSupportedRegions());
 
@@ -105,7 +105,7 @@ describe('MnoService::exampleNumber', function (): void {
 
         $example = app(MnoService::class)->exampleNumber();
 
-        expect($example)->toBeInstanceOf(PhoneNumber::class)
+        expect($example)->toBeInstanceOf(Msisdn::class)
             ->and($example->countryIso())->toBe('TZ');
     });
 

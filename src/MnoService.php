@@ -13,7 +13,7 @@ use MoonlyDays\MNO\Exceptions\InvalidCarrierException;
 use MoonlyDays\MNO\Exceptions\PhoneNumberLengthException;
 use MoonlyDays\MNO\Values\Carrier;
 use MoonlyDays\MNO\Values\Country;
-use MoonlyDays\MNO\Values\PhoneNumber;
+use MoonlyDays\MNO\Values\Msisdn;
 
 class MnoService
 {
@@ -154,7 +154,7 @@ class MnoService
     /**
      * Get an example national number for the configured country.
      */
-    public function exampleNumber(): ?PhoneNumber
+    public function exampleNumber(): ?Msisdn
     {
         $example = $this->phoneNumberUtil->getExampleNumber($this->countryIsoCode());
 
@@ -162,7 +162,7 @@ class MnoService
             return null;
         }
 
-        return PhoneNumber::from(
+        return Msisdn::from(
             $this->phoneNumberUtil->format($example, PhoneNumberFormat::E164),
         );
     }

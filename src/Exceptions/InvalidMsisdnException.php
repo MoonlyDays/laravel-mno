@@ -7,7 +7,7 @@ namespace MoonlyDays\MNO\Exceptions;
 use InvalidArgumentException;
 use Throwable;
 
-final class InvalidPhoneNumberException extends InvalidArgumentException
+final class InvalidMsisdnException extends InvalidArgumentException
 {
     public static function forNumber(string $number, ?Throwable $previous = null): self
     {

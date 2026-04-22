@@ -37,15 +37,15 @@ When `$region` is omitted, the configured country (`config('mno.country')`, via 
 default parse region.
 
 ```php
-use MoonlyDays\MNO\Values\PhoneNumber;
+use MoonlyDays\MNO\Values\Msisdn;
 
 // Throws on invalid input
-$phone = PhoneNumber::from('+255712345678');
-$phone = PhoneNumber::from('0712345678', 'TZ');
-$phone = PhoneNumber::from(255712345678, 'TZ'); // int form, e.g. from an integer column
+$phone = Msisdn::from('+255712345678');
+$phone = Msisdn::from('0712345678', 'TZ');
+$phone = Msisdn::from(255712345678, 'TZ'); // int form, e.g. from an integer column
 
 // Returns null on invalid input — use for user input
-$phone = PhoneNumber::tryFrom($request->input('phone'));
+$phone = Msisdn::tryFrom($request->input('phone'));
 
 // Global helper
 $phone = phoneNumber('+255712345678');
@@ -187,7 +187,7 @@ If no metadata is available or no type exposes usable lengths, `PhoneNumberLengt
 
 ```php
 use Illuminate\Validation\Rule;
-use MoonlyDays\MNO\Rules\PhoneNumberRule;
+use MoonlyDays\MNO\Rules\MsisdnRule;
 
 // Default rule — pre-configured from config (country, networkCodes, min/maxLength)
 $request->validate([
@@ -198,7 +198,7 @@ $request->validate([
 $request->validate([
     'phone' => [
         'required',
-        (new PhoneNumberRule())
+        (new MsisdnRule())
             ->country('TZ', 'KE', 'UG')
             ->networkCodes('71', '74', '75')
             ->minLength(9)
@@ -240,18 +240,18 @@ without the leading `+`) and hydrates them as `PhoneNumber` instances. Since `Ph
 `Castable`, you can use either `PhoneNumberCast::class` or `PhoneNumber::class` directly:
 
 ```php
-use MoonlyDays\MNO\Values\PhoneNumber;
+use MoonlyDays\MNO\Values\Msisdn;
 
 class User extends Model
 {
     protected $casts = [
-        'phone' => PhoneNumber::class, // or PhoneNumberCast::class
+        'phone' => Msisdn::class, // or PhoneNumberCast::class
     ];
 }
 
 // Setting — accepts string, int, or PhoneNumber; stores as int
 $user->phone = '0712345678';
-$user->phone = PhoneNumber::from('+255712345678');
+$user->phone = Msisdn::from('+255712345678');
 $user->phone = 255712345678;
 $user->save(); // Stored as the integer 255712345678
 
@@ -321,10 +321,10 @@ constraints.
 JSON API resource for exposing operator format configuration to frontends or external APIs:
 
 ```php
-use MoonlyDays\MNO\Resources\PhoneNumberFormatResource;
+use MoonlyDays\MNO\Resources\MsisdnFormatResource;
 
 // In a controller
-return PhoneNumberFormatResource::make();
+return MsisdnFormatResource::make();
 
 // Output:
 // {

@@ -5,8 +5,8 @@ declare(strict_types=1);
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberType;
 use libphonenumber\PhoneNumberUtil;
-use MoonlyDays\MNO\Exceptions\InvalidPhoneNumberException;
-use MoonlyDays\MNO\Values\PhoneNumber;
+use MoonlyDays\MNO\Exceptions\InvalidMsisdnException;
+use MoonlyDays\MNO\Values\Msisdn;
 
 it('phoneNumber() global helper returns a PhoneNumber', function (): void {
     $util = PhoneNumberUtil::getInstance();
@@ -15,7 +15,7 @@ it('phoneNumber() global helper returns a PhoneNumber', function (): void {
 
     $phone = phoneNumber($e164);
 
-    expect($phone)->toBeInstanceOf(PhoneNumber::class)
+    expect($phone)->toBeInstanceOf(Msisdn::class)
         ->and($phone->e164())->toBe($e164);
 });
 
@@ -29,4 +29,4 @@ it('phoneNumber() forwards the region argument', function (): void {
 
 it('phoneNumber() throws on invalid input', function (): void {
     phoneNumber('not-a-number');
-})->throws(InvalidPhoneNumberException::class);
+})->throws(InvalidMsisdnException::class);

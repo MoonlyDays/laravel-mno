@@ -6,16 +6,16 @@ use libphonenumber\PhoneNumber as BasePhoneNumber;
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberType;
 use libphonenumber\PhoneNumberUtil;
-use MoonlyDays\MNO\Exceptions\InvalidPhoneNumberException;
-use MoonlyDays\MNO\Values\PhoneNumber;
+use MoonlyDays\MNO\Exceptions\InvalidMsisdnException;
+use MoonlyDays\MNO\Values\Msisdn;
 
 describe('PhoneNumber::from', function (): void {
     it('parses a valid E.164 number without a region', function (): void {
         $e164 = mobileExampleFor('TZ');
 
-        $phone = PhoneNumber::from($e164);
+        $phone = Msisdn::from($e164);
 
-        expect($phone)->toBeInstanceOf(PhoneNumber::class)
+        expect($phone)->toBeInstanceOf(Msisdn::class)
             ->and($phone->e164())->toBe($e164)
             ->and($phone->countryIso())->toBe('TZ')
             ->and($phone->countryCode())->toBe(255);
@@ -26,7 +26,7 @@ describe('PhoneNumber::from', function (): void {
         $example = $util->getExampleNumberForType('GB', PhoneNumberType::MOBILE);
         $national = $util->format($example, PhoneNumberFormat::NATIONAL);
 
-        $phone = PhoneNumber::from($national, 'GB');
+        $phone = Msisdn::from($national, 'GB');
 
         expect($phone->countryIso())->toBe('GB')
             ->and($phone->countryCode())->toBe(44);
@@ -39,24 +39,24 @@ describe('PhoneNumber::from', function (): void {
         $example = $util->getExampleNumberForType('GB', PhoneNumberType::MOBILE);
         $national = $util->format($example, PhoneNumberFormat::NATIONAL);
 
-        $phone = PhoneNumber::from($national);
+        $phone = Msisdn::from($national);
 
         expect($phone->countryIso())->toBe('GB');
     });
 
     it('throws InvalidPhoneNumberException for unparseable input', function (): void {
-        PhoneNumber::from('not-a-number');
-    })->throws(InvalidPhoneNumberException::class);
+        Msisdn::from('not-a-number');
+    })->throws(InvalidMsisdnException::class);
 
     it('throws InvalidPhoneNumberException for parseable-but-invalid numbers', function (): void {
         // A short string that parses but is not a valid number.
-        PhoneNumber::from('+1234');
-    })->throws(InvalidPhoneNumberException::class);
+        Msisdn::from('+1234');
+    })->throws(InvalidMsisdnException::class);
 
     it('includes the offending number in the exception message', function (): void {
         try {
-            PhoneNumber::from('bogus');
-        } catch (InvalidPhoneNumberException $e) {
+            Msisdn::from('bogus');
+        } catch (InvalidMsisdnException $e) {
             expect($e->getMessage())->toContain('bogus');
 
             return;
@@ -69,9 +69,9 @@ describe('PhoneNumber::from', function (): void {
         $e164 = mobileExampleFor('TZ');
         $int = (int) ltrim($e164, '+');
 
-        $phone = PhoneNumber::from($int, 'TZ');
+        $phone = Msisdn::from($int, 'TZ');
 
-        expect($phone)->toBeInstanceOf(PhoneNumber::class)
+        expect($phone)->toBeInstanceOf(Msisdn::class)
             ->and($phone->e164())->toBe($e164);
     });
 
@@ -80,45 +80,45 @@ describe('PhoneNumber::from', function (): void {
         $e164 = mobileExampleFor('TZ');
         $int = (int) ltrim($e164, '+');
 
-        $phone = PhoneNumber::from($int);
+        $phone = Msisdn::from($int);
 
         expect($phone->e164())->toBe($e164);
     });
 
     it('throws InvalidPhoneNumberException when given an unparseable integer', function (): void {
-        PhoneNumber::from(1234, 'TZ');
-    })->throws(InvalidPhoneNumberException::class);
+        Msisdn::from(1234, 'TZ');
+    })->throws(InvalidMsisdnException::class);
 });
 
 describe('PhoneNumber::tryFrom', function (): void {
     it('returns a PhoneNumber for valid input', function (): void {
-        $phone = PhoneNumber::tryFrom(mobileExampleFor('TZ'));
+        $phone = Msisdn::tryFrom(mobileExampleFor('TZ'));
 
-        expect($phone)->toBeInstanceOf(PhoneNumber::class);
+        expect($phone)->toBeInstanceOf(Msisdn::class);
     });
 
     it('returns null for invalid input', function (): void {
-        expect(PhoneNumber::tryFrom('not-a-number'))->toBeNull();
+        expect(Msisdn::tryFrom('not-a-number'))->toBeNull();
     });
 
     it('accepts an integer and parses it against the given region', function (): void {
         $e164 = mobileExampleFor('TZ');
         $int = (int) ltrim($e164, '+');
 
-        $phone = PhoneNumber::tryFrom($int, 'TZ');
+        $phone = Msisdn::tryFrom($int, 'TZ');
 
-        expect($phone)->toBeInstanceOf(PhoneNumber::class)
+        expect($phone)->toBeInstanceOf(Msisdn::class)
             ->and($phone->e164())->toBe($e164);
     });
 
     it('returns null for an unparseable integer', function (): void {
-        expect(PhoneNumber::tryFrom(1234, 'TZ'))->toBeNull();
+        expect(Msisdn::tryFrom(1234, 'TZ'))->toBeNull();
     });
 });
 
 describe('PhoneNumber formatting', function (): void {
     beforeEach(function (): void {
-        $this->phone = PhoneNumber::from(mobileExampleFor('TZ'));
+        $this->phone = Msisdn::from(mobileExampleFor('TZ'));
     });
 
     it('formats as E.164 with leading plus', function (): void {
@@ -141,14 +141,14 @@ describe('PhoneNumber formatting', function (): void {
 
 describe('PhoneNumber::toInteger', function (): void {
     it('returns an int', function (): void {
-        $phone = PhoneNumber::from(mobileExampleFor('TZ'));
+        $phone = Msisdn::from(mobileExampleFor('TZ'));
 
         expect($phone->toInteger())->toBeInt();
     });
 
     it('returns the E.164 digits without the leading plus', function (): void {
         $e164 = mobileExampleFor('TZ');
-        $phone = PhoneNumber::from($e164);
+        $phone = Msisdn::from($e164);
 
         expect((string) $phone->toInteger())->toBe(ltrim($e164, '+'));
     });
@@ -156,19 +156,19 @@ describe('PhoneNumber::toInteger', function (): void {
     it('produces equal ints for equal numbers', function (): void {
         $e164 = mobileExampleFor('TZ');
 
-        expect(PhoneNumber::from($e164)->toInteger())
-            ->toBe(PhoneNumber::from($e164)->toInteger());
+        expect(Msisdn::from($e164)->toInteger())
+            ->toBe(Msisdn::from($e164)->toInteger());
     });
 
     it('produces different ints for different numbers', function (): void {
-        $a = PhoneNumber::from(mobileExampleFor('TZ'));
-        $b = PhoneNumber::from(mobileExampleFor('GB'));
+        $a = Msisdn::from(mobileExampleFor('TZ'));
+        $b = Msisdn::from(mobileExampleFor('GB'));
 
         expect($a->toInteger())->not->toBe($b->toInteger());
     });
 
     it('preserves the country calling code in the leading digits', function (): void {
-        $phone = PhoneNumber::from(mobileExampleFor('TZ'));
+        $phone = Msisdn::from(mobileExampleFor('TZ'));
 
         expect((string) $phone->toInteger())->toStartWith((string) $phone->countryCode());
     });
@@ -181,7 +181,7 @@ describe('PhoneNumber::toInteger', function (): void {
         }
 
         foreach (['TZ', 'GB', 'US', 'DE', 'JP'] as $region) {
-            $phone = PhoneNumber::from(mobileExampleFor($region));
+            $phone = Msisdn::from(mobileExampleFor($region));
 
             expect($phone->toInteger())->toBeLessThan(PHP_INT_MAX);
         }
@@ -190,7 +190,7 @@ describe('PhoneNumber::toInteger', function (): void {
 
 describe('PhoneNumber decomposition', function (): void {
     it('exposes national number, network code and subscriber number', function (): void {
-        $phone = PhoneNumber::from(mobileExampleFor('TZ'));
+        $phone = Msisdn::from(mobileExampleFor('TZ'));
 
         $nationalNumber = $phone->nationalNumber();
         $networkCode = $phone->networkCode();
@@ -202,7 +202,7 @@ describe('PhoneNumber decomposition', function (): void {
     });
 
     it('exposes the raw libphonenumber PhoneNumber instance', function (): void {
-        $phone = PhoneNumber::from(mobileExampleFor('TZ'));
+        $phone = Msisdn::from(mobileExampleFor('TZ'));
 
         expect($phone->toPhoneNumber())
             ->toBeInstanceOf(BasePhoneNumber::class);
@@ -213,12 +213,12 @@ describe('PhoneNumber::equals', function (): void {
     it('returns true for two instances with the same E.164 value', function (): void {
         $e164 = mobileExampleFor('TZ');
 
-        expect(PhoneNumber::from($e164)->equals(PhoneNumber::from($e164)))->toBeTrue();
+        expect(Msisdn::from($e164)->equals(Msisdn::from($e164)))->toBeTrue();
     });
 
     it('returns false for different numbers', function (): void {
-        $a = PhoneNumber::from(mobileExampleFor('TZ'));
-        $b = PhoneNumber::from(mobileExampleFor('GB'));
+        $a = Msisdn::from(mobileExampleFor('TZ'));
+        $b = Msisdn::from(mobileExampleFor('GB'));
 
         expect($a->equals($b))->toBeFalse();
     });
@@ -226,9 +226,9 @@ describe('PhoneNumber::equals', function (): void {
 
 describe('PhoneNumber macroable', function (): void {
     it('supports registering and calling macros', function (): void {
-        PhoneNumber::macro('shout', fn (): string => mb_strtoupper($this->e164()));
+        Msisdn::macro('shout', fn (): string => mb_strtoupper($this->e164()));
 
-        $phone = PhoneNumber::from(mobileExampleFor('TZ'));
+        $phone = Msisdn::from(mobileExampleFor('TZ'));
 
         expect($phone->shout())->toBe(mb_strtoupper($phone->e164()));
     });
@@ -236,7 +236,7 @@ describe('PhoneNumber macroable', function (): void {
 
 describe('PhoneNumber::timezones', function (): void {
     it('returns timezone identifiers for a valid number', function (): void {
-        $phone = PhoneNumber::from(mobileExampleFor('TZ'));
+        $phone = Msisdn::from(mobileExampleFor('TZ'));
 
         $timezones = $phone->timezones();
 
@@ -246,19 +246,19 @@ describe('PhoneNumber::timezones', function (): void {
     });
 
     it('does not include Etc/Unknown', function (): void {
-        $phone = PhoneNumber::from(mobileExampleFor('TZ'));
+        $phone = Msisdn::from(mobileExampleFor('TZ'));
 
         expect($phone->timezones())->not->toContain('Etc/Unknown');
     });
 
     it('returns Africa/Dar_es_Salaam for a Tanzanian number', function (): void {
-        $phone = PhoneNumber::from(mobileExampleFor('TZ'));
+        $phone = Msisdn::from(mobileExampleFor('TZ'));
 
         expect($phone->timezones())->toContain('Africa/Dar_es_Salaam');
     });
 
     it('returns Europe/London for a UK number', function (): void {
-        $phone = PhoneNumber::from(mobileExampleFor('GB'));
+        $phone = Msisdn::from(mobileExampleFor('GB'));
 
         expect($phone->timezones())->toContain('Europe/London');
     });
@@ -266,7 +266,7 @@ describe('PhoneNumber::timezones', function (): void {
 
 describe('PhoneNumber::timezone', function (): void {
     it('returns the primary timezone as a string', function (): void {
-        $phone = PhoneNumber::from(mobileExampleFor('TZ'));
+        $phone = Msisdn::from(mobileExampleFor('TZ'));
 
         expect($phone->timezone())->toBeString()
             ->and($phone->timezone())->toBe($phone->timezones()[0]);

@@ -14,12 +14,12 @@ use libphonenumber\PhoneNumber as BasePhoneNumber;
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberToTimeZonesMapper;
 use libphonenumber\PhoneNumberUtil;
-use MoonlyDays\MNO\Casts\PhoneNumberCast;
-use MoonlyDays\MNO\Exceptions\InvalidPhoneNumberException;
+use MoonlyDays\MNO\Casts\MsisdnCast;
+use MoonlyDays\MNO\Exceptions\InvalidMsisdnException;
 use MoonlyDays\MNO\Facades\MNO;
 use Stringable;
 
-class PhoneNumber implements Castable, JsonSerializable, Stringable
+class Msisdn implements Castable, JsonSerializable, Stringable
 {
     use Macroable;
     use Tappable;
@@ -40,7 +40,7 @@ class PhoneNumber implements Castable, JsonSerializable, Stringable
     /**
      * Parse the given number into a PhoneNumber value object.
      *
-     * @throws InvalidPhoneNumberException
+     * @throws InvalidMsisdnException
      */
     public static function from(string|int $number, ?string $region = null): self
     {
@@ -51,11 +51,11 @@ class PhoneNumber implements Castable, JsonSerializable, Stringable
         try {
             $parsed = $util->parse($number, $region);
         } catch (NumberParseException $numberParseException) {
-            throw InvalidPhoneNumberException::forNumber($number, $numberParseException);
+            throw InvalidMsisdnException::forNumber($number, $numberParseException);
         }
 
         if (! $util->isValidNumber($parsed)) {
-            throw InvalidPhoneNumberException::forNumber($number);
+            throw InvalidMsisdnException::forNumber($number);
         }
 
         return new self($parsed);
@@ -68,14 +68,14 @@ class PhoneNumber implements Castable, JsonSerializable, Stringable
     {
         try {
             return self::from($number, $region);
-        } catch (InvalidPhoneNumberException) {
+        } catch (InvalidMsisdnException) {
             return null;
         }
     }
 
     public static function castUsing(array $arguments): string
     {
-        return PhoneNumberCast::class;
+        return MsisdnCast::class;
     }
 
     /**

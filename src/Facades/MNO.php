@@ -9,7 +9,7 @@ use MoonlyDays\MNO\Enums\NumberType;
 use MoonlyDays\MNO\MnoService;
 use MoonlyDays\MNO\Values\Carrier;
 use MoonlyDays\MNO\Values\Country;
-use MoonlyDays\MNO\Values\PhoneNumber;
+use MoonlyDays\MNO\Values\Msisdn;
 
 /**
  * @method static string countryIsoCode()
@@ -20,7 +20,7 @@ use MoonlyDays\MNO\Values\PhoneNumber;
  * @method static Carrier carrier(?string $country = null, ?string $name = null)
  * @method static int minLength()
  * @method static int maxLength()
- * @method static PhoneNumber|null exampleNumber()
+ * @method static Msisdn|null exampleNumber()
  * @method static array<NumberType> numberTypes()
  *
  * @see MnoService
