@@ -11,7 +11,7 @@ use MoonlyDays\MNO\MnoService;
 /**
  * @property MnoService $resource
  */
-class PhoneNumberFormatResource extends JsonResource
+class MsisdnFormatResource extends JsonResource
 {
     public function __construct(MnoService $resource)
     {

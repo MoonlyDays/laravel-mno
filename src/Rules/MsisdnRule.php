@@ -9,9 +9,9 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use MoonlyDays\MNO\Facades\MNO;
-use MoonlyDays\MNO\Values\PhoneNumber;
+use MoonlyDays\MNO\Values\Msisdn;
 
-class PhoneNumberRule implements ValidationRule
+class MsisdnRule implements ValidationRule
 {
     /**
      * @var (callable(): static)|null
@@ -102,8 +102,8 @@ class PhoneNumberRule implements ValidationRule
             return;
         }
 
-        $phoneNumber = PhoneNumber::tryFrom($value);
-        if (! $phoneNumber instanceof PhoneNumber) {
+        $phoneNumber = Msisdn::tryFrom($value);
+        if (! $phoneNumber instanceof Msisdn) {
             $fail('validation.msisdn.invalid')->translate();
 
             return;

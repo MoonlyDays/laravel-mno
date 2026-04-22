@@ -1,7 +1,7 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Parameter \#2 \$second of method Illuminate\\Console\\View\\Components\\Factory\:\:twoColumnDetail\(\) expects string\|null, MoonlyDays\\MNO\\Values\\PhoneNumber\|null given\.$#'
+			message: '#^Parameter \#2 \$second of method Illuminate\\Console\\View\\Components\\Factory\:\:twoColumnDetail\(\) expects string\|null, MoonlyDays\\MNO\\Values\\Msisdn\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Console/Commands/ShowCommand.php
@@ -19,10 +19,10 @@ parameters:
 			path: src/Console/Commands/ShowCommand.php
 
 		-
-			message: '#^Method MoonlyDays\\MNO\\Resources\\PhoneNumberFormatResource\:\:make\(\) should return static\(MoonlyDays\\MNO\\Resources\\PhoneNumberFormatResource\) but returns MoonlyDays\\MNO\\Resources\\PhoneNumberFormatResource\.$#'
+			message: '#^Method MoonlyDays\\MNO\\Resources\\MsisdnFormatResource\:\:make\(\) should return static\(MoonlyDays\\MNO\\Resources\\MsisdnFormatResource\) but returns MoonlyDays\\MNO\\Resources\\MsisdnFormatResource\.$#'
 			identifier: return.type
 			count: 1
-			path: src/Resources/PhoneNumberFormatResource.php
+			path: src/Resources/MsisdnFormatResource.php
 
 		-
 			message: '#^Dead catch \- MoonlyDays\\MNO\\Exceptions\\InvalidCountryException is never thrown in the try block\.$#'
@@ -31,73 +31,55 @@ parameters:
 			path: src/Values/Carrier.php
 
 		-
-			message: '#^Access to an undefined property PHPUnit\\Framework\\TestCase\:\:\$blueprint\.$#'
-			identifier: property.notFound
-			count: 4
-			path: tests/Feature/BlueprintPhoneNumberMacroTest.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model@anonymous/tests/Feature/PhoneNumberCastTest\.php\:109\:\:\$phone\.$#'
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model@anonymous/tests/Feature/MsisdnCastTest\.php\:109\:\:\$phone\.$#'
 			identifier: property.notFound
 			count: 1
-			path: tests/Feature/PhoneNumberCastTest.php
+			path: tests/Feature/MsisdnCastTest.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model@anonymous/tests/Feature/PhoneNumberCastTest\.php\:129\:\:\$phone\.$#'
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model@anonymous/tests/Feature/MsisdnCastTest\.php\:129\:\:\$phone\.$#'
 			identifier: property.notFound
 			count: 2
-			path: tests/Feature/PhoneNumberCastTest.php
+			path: tests/Feature/MsisdnCastTest.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model@anonymous/tests/Feature/PhoneNumberCastTest\.php\:152\:\:\$phone\.$#'
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model@anonymous/tests/Feature/MsisdnCastTest\.php\:152\:\:\$phone\.$#'
 			identifier: property.notFound
 			count: 1
-			path: tests/Feature/PhoneNumberCastTest.php
+			path: tests/Feature/MsisdnCastTest.php
 
 		-
 			message: '#^Cannot call method e164\(\) on string\.$#'
 			identifier: method.nonObject
 			count: 2
-			path: tests/Feature/PhoneNumberCastTest.php
+			path: tests/Feature/MsisdnCastTest.php
 
 		-
-			message: '#^Call to an undefined method Faker\\Generator\:\:internationalPhoneNumber\(\)\.$#'
+			message: '#^Call to an undefined method Faker\\Generator\:\:msisdn\(\)\.$#'
 			identifier: method.notFound
-			count: 1
-			path: tests/Feature/PhoneNumberFakerTest.php
-
-		-
-			message: '#^Call to an undefined method Faker\\Generator\:\:nationalPhoneNumber\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: tests/Feature/PhoneNumberFakerTest.php
-
-		-
-			message: '#^Call to an undefined method Faker\\Generator\:\:phoneNumberObject\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: tests/Feature/PhoneNumberFakerTest.php
+			count: 2
+			path: tests/Feature/MsisdnFakerTest.php
 
 		-
 			message: '#^Call to an undefined method Illuminate\\Contracts\\Validation\\Validator\:\:passes\(\)\.$#'
 			identifier: method.notFound
 			count: 8
-			path: tests/Feature/PhoneNumberRuleTest.php
+			path: tests/Feature/MsisdnRuleTest.php
 
 		-
-			message: '#^Call to an undefined static method Illuminate\\Validation\\Rule\:\:phoneNumber\(\)\.$#'
+			message: '#^Call to an undefined static method Illuminate\\Validation\\Rule\:\:msisdn\(\)\.$#'
 			identifier: staticMethod.notFound
 			count: 1
-			path: tests/Feature/PhoneNumberRuleTest.php
+			path: tests/Feature/MsisdnRuleTest.php
 
 		-
-			message: '#^Call to an undefined method Illuminate\\Http\\Request\:\:phoneNumber\(\)\.$#'
+			message: '#^Call to an undefined method Illuminate\\Http\\Request\:\:msisdn\(\)\.$#'
 			identifier: method.notFound
 			count: 10
-			path: tests/Feature/RequestPhoneNumberMacroTest.php
+			path: tests/Feature/RequestMsisdnMacroTest.php
 
 		-
-			message: '#^Call to an undefined static method Illuminate\\Validation\\Rule\:\:phoneNumber\(\)\.$#'
+			message: '#^Call to an undefined static method Illuminate\\Validation\\Rule\:\:msisdn\(\)\.$#'
 			identifier: staticMethod.notFound
 			count: 1
 			path: tests/Feature/ServiceProviderTest.php
@@ -124,10 +106,10 @@ parameters:
 			message: '#^Access to an undefined property PHPUnit\\Framework\\TestCase\:\:\$phone\.$#'
 			identifier: property.notFound
 			count: 7
-			path: tests/Unit/Values/PhoneNumberTest.php
+			path: tests/Unit/Values/MsisdnTest.php
 
 		-
-			message: '#^Call to an undefined method MoonlyDays\\MNO\\Values\\PhoneNumber\:\:shout\(\)\.$#'
+			message: '#^Call to an undefined method MoonlyDays\\MNO\\Values\\Msisdn\:\:shout\(\)\.$#'
 			identifier: method.notFound
 			count: 1
-			path: tests/Unit/Values/PhoneNumberTest.php
+			path: tests/Unit/Values/MsisdnTest.php

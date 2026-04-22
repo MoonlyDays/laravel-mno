@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 use Illuminate\Http\Request;
 use MoonlyDays\MNO\MnoService;
-use MoonlyDays\MNO\Resources\PhoneNumberFormatResource;
+use MoonlyDays\MNO\Resources\MsisdnFormatResource;
 
-describe('PhoneNumberFormatResource', function (): void {
+describe('MsisdnFormatResource', function (): void {
     beforeEach(function (): void {
         config()->set('mno.country', 'TZ');
         config()->set('mno.network_codes', ['74', '75', '76']);
@@ -16,7 +16,7 @@ describe('PhoneNumberFormatResource', function (): void {
 
     it('exposes operator metadata via toAttributes', function (): void {
         $service = app(MnoService::class);
-        $resource = new PhoneNumberFormatResource($service);
+        $resource = new MsisdnFormatResource($service);
 
         $attributes = $resource->toAttributes(Request::create('/'));
 
@@ -30,14 +30,14 @@ describe('PhoneNumberFormatResource', function (): void {
     });
 
     it('can be instantiated through the make() factory', function (): void {
-        $resource = PhoneNumberFormatResource::make();
+        $resource = MsisdnFormatResource::make();
 
-        expect($resource)->toBeInstanceOf(PhoneNumberFormatResource::class);
+        expect($resource)->toBeInstanceOf(MsisdnFormatResource::class);
     });
 
     it('resolves to an array containing operator metadata', function (): void {
         $service = app(MnoService::class);
-        $resource = new PhoneNumberFormatResource($service);
+        $resource = new MsisdnFormatResource($service);
 
         $array = $resource->resolve(Request::create('/'));
 

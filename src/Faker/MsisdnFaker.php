@@ -11,10 +11,10 @@ use libphonenumber\NumberParseException;
 use libphonenumber\PhoneNumber as BasePhoneNumber;
 use libphonenumber\PhoneNumberUtil;
 use MoonlyDays\MNO\Facades\MNO;
-use MoonlyDays\MNO\Values\PhoneNumber;
+use MoonlyDays\MNO\Values\Msisdn;
 use RuntimeException;
 
-class PhoneNumberFaker extends Base
+class MsisdnFaker extends Base
 {
     private const MAX_ATTEMPTS_PER_NETWORK_CODE = 5;
 
@@ -22,52 +22,16 @@ class PhoneNumberFaker extends Base
      * @throws NumberParseException
      * @throws RuntimeException
      */
-    public function phoneNumberObject(): PhoneNumber
+    public function msisdn(): Msisdn
     {
-        return new PhoneNumber($this->generatePhoneNumber());
+        return new Msisdn($this->generateMsisdn());
     }
 
     /**
      * @throws NumberParseException
      * @throws RuntimeException
      */
-    public function phoneNumber(): string
-    {
-        return $this->e164PhoneNumber();
-    }
-
-    /**
-     * @throws NumberParseException
-     * @throws RuntimeException
-     */
-    public function e164PhoneNumber(): string
-    {
-        return $this->phoneNumberObject()->e164();
-    }
-
-    /**
-     * @throws NumberParseException
-     * @throws RuntimeException
-     */
-    public function nationalPhoneNumber(): string
-    {
-        return $this->phoneNumberObject()->national();
-    }
-
-    /**
-     * @throws NumberParseException
-     * @throws RuntimeException
-     */
-    public function internationalPhoneNumber(): string
-    {
-        return $this->phoneNumberObject()->international();
-    }
-
-    /**
-     * @throws NumberParseException
-     * @throws RuntimeException
-     */
-    protected function generatePhoneNumber(): BasePhoneNumber
+    protected function generateMsisdn(): BasePhoneNumber
     {
         $util = app(PhoneNumberUtil::class);
         $countryCode = MNO::countryCode();

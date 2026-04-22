@@ -6,7 +6,7 @@ use MoonlyDays\MNO\Exceptions\InvalidCarrierException;
 use MoonlyDays\MNO\Exceptions\InvalidCountryException;
 use MoonlyDays\MNO\Values\Carrier;
 use MoonlyDays\MNO\Values\Country;
-use MoonlyDays\MNO\Values\PhoneNumber;
+use MoonlyDays\MNO\Values\Msisdn;
 
 describe('Country::from', function (): void {
     it('builds a Country for a valid ISO code', function (): void {
@@ -86,7 +86,7 @@ describe('Country metadata passthroughs', function (): void {
     it('returns an example phone number for the region', function (): void {
         $example = Country::from('TZ')->exampleNumber();
 
-        expect($example)->toBeInstanceOf(PhoneNumber::class)
+        expect($example)->toBeInstanceOf(Msisdn::class)
             ->and($example->countryIso())->toBe('TZ');
     });
 

@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 use libphonenumber\NumberParseException;
-use MoonlyDays\MNO\Exceptions\InvalidPhoneNumberException;
+use MoonlyDays\MNO\Exceptions\InvalidMsisdnException;
 use MoonlyDays\MNO\Exceptions\PhoneNumberLengthException;
 
-describe('InvalidPhoneNumberException', function (): void {
+describe('InvalidMsisdnException', function (): void {
     it('mentions the offending number in its message', function (): void {
-        $exception = InvalidPhoneNumberException::forNumber('+123');
+        $exception = InvalidMsisdnException::forNumber('+123');
 
         expect($exception->getMessage())->toContain('+123');
     });
@@ -16,13 +16,13 @@ describe('InvalidPhoneNumberException', function (): void {
     it('carries a previous exception when provided', function (): void {
         $previous = new NumberParseException(1, 'boom');
 
-        $exception = InvalidPhoneNumberException::forNumber('bad', $previous);
+        $exception = InvalidMsisdnException::forNumber('bad', $previous);
 
         expect($exception->getPrevious())->toBe($previous);
     });
 
     it('extends InvalidArgumentException', function (): void {
-        expect(InvalidPhoneNumberException::forNumber('x'))
+        expect(InvalidMsisdnException::forNumber('x'))
             ->toBeInstanceOf(InvalidArgumentException::class);
     });
 });

@@ -6,29 +6,29 @@ namespace MoonlyDays\MNO\Casts;
 
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Database\Eloquent\Model;
-use MoonlyDays\MNO\Values\PhoneNumber;
+use MoonlyDays\MNO\Values\Msisdn;
 
 /**
- * @implements CastsAttributes<PhoneNumber, int>
+ * @implements CastsAttributes<Msisdn, int>
  */
-class PhoneNumberCast implements CastsAttributes
+class MsisdnCast implements CastsAttributes
 {
     /**
-     * Cast the given value to a PhoneNumber value object.
+     * Cast the given value to a Msisdn value object.
      */
-    public function get(Model $model, string $key, mixed $value, array $attributes): ?PhoneNumber
+    public function get(Model $model, string $key, mixed $value, array $attributes): ?Msisdn
     {
         if ($value === null) {
             return null;
         }
 
-        return PhoneNumber::from($value);
+        return Msisdn::from($value);
     }
 
     /**
      * Prepare the given value for storage as the E.164 digits as an integer.
      *
-     * @param  PhoneNumber|string|int|null  $value
+     * @param  Msisdn|string|int|null  $value
      */
     public function set(Model $model, string $key, mixed $value, array $attributes): ?int
     {
@@ -36,8 +36,8 @@ class PhoneNumberCast implements CastsAttributes
             return null;
         }
 
-        if (! $value instanceof PhoneNumber) {
-            $value = PhoneNumber::from($value);
+        if (! $value instanceof Msisdn) {
+            $value = Msisdn::from($value);
         }
 
         return $value->toInteger();
