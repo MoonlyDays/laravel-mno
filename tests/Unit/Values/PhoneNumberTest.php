@@ -64,6 +64,30 @@ describe('PhoneNumber::from', function (): void {
 
         $this->fail('Expected InvalidPhoneNumberException was not thrown.');
     });
+
+    it('accepts an integer and parses it against the given region', function (): void {
+        $e164 = mobileExampleFor('TZ');
+        $int = (int) ltrim($e164, '+');
+
+        $phone = PhoneNumber::from($int, 'TZ');
+
+        expect($phone)->toBeInstanceOf(PhoneNumber::class)
+            ->and($phone->e164())->toBe($e164);
+    });
+
+    it('accepts an integer using the configured MNO country as the default region', function (): void {
+        config()->set('mno.country', 'TZ');
+        $e164 = mobileExampleFor('TZ');
+        $int = (int) ltrim($e164, '+');
+
+        $phone = PhoneNumber::from($int);
+
+        expect($phone->e164())->toBe($e164);
+    });
+
+    it('throws InvalidPhoneNumberException when given an unparseable integer', function (): void {
+        PhoneNumber::from(1234, 'TZ');
+    })->throws(InvalidPhoneNumberException::class);
 });
 
 describe('PhoneNumber::tryFrom', function (): void {

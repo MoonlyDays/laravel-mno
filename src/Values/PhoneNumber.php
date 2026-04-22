@@ -44,11 +44,12 @@ class PhoneNumber implements Castable, JsonSerializable, Stringable
      */
     public static function from(string|int $number, ?string $region = null): self
     {
+        $number = (string) $number;
         $region ??= MNO::countryIsoCode();
         $util = PhoneNumberUtil::getInstance();
 
         try {
-            $parsed = $util->parse((string) $number, $region);
+            $parsed = $util->parse($number, $region);
         } catch (NumberParseException $numberParseException) {
             throw InvalidPhoneNumberException::forNumber($number, $numberParseException);
         }

@@ -35,6 +35,19 @@ describe('PhoneNumberCast::get', function (): void {
             ->and($phone->e164())->toBe($e164);
     });
 
+    it('hydrates a PhoneNumber from a stored integer', function (): void {
+        config()->set('mno.country', 'TZ');
+        $cast = new PhoneNumberCast();
+        $model = new class extends Model {};
+        $e164 = mobileExampleFor('TZ');
+        $int = e164ToInt($e164);
+
+        $phone = $cast->get($model, 'phone', $int, []);
+
+        expect($phone)->toBeInstanceOf(PhoneNumber::class)
+            ->and($phone->e164())->toBe($e164);
+    });
+
     it('throws on invalid stored data', function (): void {
         $cast = new PhoneNumberCast();
         $model = new class extends Model {};
@@ -73,6 +86,16 @@ describe('PhoneNumberCast::set', function (): void {
         expect($cast->set($model, 'phone', $national, []))->toBe(e164ToInt($expected));
     });
 
+    it('accepts an integer and stores it as an integer', function (): void {
+        config()->set('mno.country', 'TZ');
+        $cast = new PhoneNumberCast();
+        $model = new class extends Model {};
+        $e164 = mobileExampleFor('TZ');
+        $int = e164ToInt($e164);
+
+        expect($cast->set($model, 'phone', $int, []))->toBe($int);
+    });
+
     it('throws on invalid string input', function (): void {
         $cast = new PhoneNumberCast();
         $model = new class extends Model {};
@@ -97,6 +120,25 @@ describe('PhoneNumberCast on Eloquent models', function (): void {
 
         expect($model->getAttributes()['phone'])->toBe(e164ToInt($e164))
             ->and($model->phone)->toBeInstanceOf(PhoneNumber::class)
+            ->and($model->phone->e164())->toBe($e164);
+    });
+
+    it('rehydrates a PhoneNumber from an integer attribute loaded from storage', function (): void {
+        config()->set('mno.country', 'TZ');
+
+        $model = new class extends Model
+        {
+            protected $guarded = [];
+
+            protected $casts = [
+                'phone' => PhoneNumberCast::class,
+            ];
+        };
+
+        $e164 = mobileExampleFor('TZ');
+        $model->setRawAttributes(['phone' => e164ToInt($e164)], true);
+
+        expect($model->phone)->toBeInstanceOf(PhoneNumber::class)
             ->and($model->phone->e164())->toBe($e164);
     });
 });
