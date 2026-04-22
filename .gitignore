@@ -13,6 +13,8 @@ yarn-error.log
 .phpunit.cache
 .phpunit.result.cache
 /build
+/phpstan.neon
+/.phpstan.cache
 
 # IDE Helper
 _ide_helper.php

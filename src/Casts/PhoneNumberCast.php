@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use MoonlyDays\MNO\Values\PhoneNumber;
 
 /**
- * @implements CastsAttributes<PhoneNumber, string>
+ * @implements CastsAttributes<PhoneNumber, int>
  */
 class PhoneNumberCast implements CastsAttributes
 {
@@ -26,20 +26,20 @@ class PhoneNumberCast implements CastsAttributes
     }
 
     /**
-     * Prepare the given value for storage in E.164 format.
+     * Prepare the given value for storage as the E.164 digits as an integer.
      *
-     * @param  PhoneNumber|string|null  $value
+     * @param  PhoneNumber|string|int|null  $value
      */
-    public function set(Model $model, string $key, mixed $value, array $attributes): ?string
+    public function set(Model $model, string $key, mixed $value, array $attributes): ?int
     {
         if ($value === null) {
             return null;
         }
 
-        if ($value instanceof PhoneNumber) {
-            return $value->e164();
+        if (! $value instanceof PhoneNumber) {
+            $value = PhoneNumber::from($value);
         }
 
-        return PhoneNumber::from($value)->e164();
+        return $value->toInteger();
     }
 }

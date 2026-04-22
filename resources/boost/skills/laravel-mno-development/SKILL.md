@@ -2,8 +2,9 @@
 name: laravel-mno-development
 description: >-
   Use this skill when working with phone number fields, PhoneNumberRule validation,
-  PhoneNumberCast, the MNO facade, or PhoneNumberFormatResource. Contains full API
-  signatures, code examples, and configuration reference.
+  PhoneNumberCast, the MNO facade, PhoneNumberFormatResource, the Blueprint::phoneNumber
+  schema macro, or the Faker provider. Contains full API signatures, code examples,
+  and configuration reference.
 ---
 
 # moonlydays/laravel-mno
@@ -21,10 +22,12 @@ The core of the package. An immutable, immediately-validated phone number repres
 
 **Creating instances:**
 
-- `PhoneNumber::from(string $number, ?string $region = null): PhoneNumber` — parse and validate. Throws
-  `InvalidPhoneNumberException` on failure. Use when input is trusted or you want to fail loudly.
-- `PhoneNumber::tryFrom(string $number, ?string $region = null): ?PhoneNumber` — returns `null` on failure. Use for user
-  input.
+- `PhoneNumber::from(string|int $number, ?string $region = null): PhoneNumber` — parse and validate. Accepts
+  either the E.164 string (e.g. `"+255712345678"`) or the integer form (e.g. `255712345678`, as produced by
+  `toInteger()` or stored by the cast). Throws `InvalidPhoneNumberException` on failure. Use when input is
+  trusted or you want to fail loudly.
+- `PhoneNumber::tryFrom(string|int $number, ?string $region = null): ?PhoneNumber` — returns `null` on failure. Use for
+  user input.
 - `phoneNumber(string $number, ?string $region = null): PhoneNumber` — global helper, equivalent to
   `PhoneNumber::from()`.
 - `PhoneNumber::castUsing(array $arguments): string` — returns `PhoneNumberCast::class`, enabling direct use as an
@@ -39,6 +42,7 @@ use MoonlyDays\MNO\Values\PhoneNumber;
 // Throws on invalid input
 $phone = PhoneNumber::from('+255712345678');
 $phone = PhoneNumber::from('0712345678', 'TZ');
+$phone = PhoneNumber::from(255712345678, 'TZ'); // int form, e.g. from an integer column
 
 // Returns null on invalid input — use for user input
 $phone = PhoneNumber::tryFrom($request->input('phone'));
@@ -52,6 +56,8 @@ $phone = phoneNumber('+255712345678');
 - `e164(): string` — E.164 format: `+255712345678`
 - `national(): string` — national format: `0712 345 678`
 - `international(): string` — international format: `+255 712 345 678`
+- `toInteger(): int` — E.164 digits without the leading `+` as an integer: `255712345678`. Used by
+  `PhoneNumberCast` for storage.
 - `__toString()` returns E.164.
 
 **Component extraction:**
@@ -61,6 +67,12 @@ $phone = phoneNumber('+255712345678');
 - `nationalNumber(): string` — digits without country code (e.g., `712345678`)
 - `networkCode(): string` — NDC prefix using libphonenumber's destination code length (e.g., `712`)
 - `subscriberNumber(): string` — digits after NDC (e.g., `345678`)
+
+**Timezones:**
+
+- `timezone(): ?string` — primary IANA timezone identifier for the number, or `null` if unknown.
+- `timezones(): array<string>` — all IANA timezone identifiers for the number. Excludes
+  `Etc/Unknown`.
 
 **Other methods:**
 
@@ -223,8 +235,9 @@ prefix.
 
 ## Eloquent Cast
 
-`PhoneNumberCast` stores phone numbers as E.164 in the database and hydrates them as `PhoneNumber` instances. Since
-`PhoneNumber` implements `Castable`, you can use either `PhoneNumberCast::class` or `PhoneNumber::class` directly:
+`PhoneNumberCast` stores phone numbers as an **unsigned bigInteger** in the database (the E.164 digits
+without the leading `+`) and hydrates them as `PhoneNumber` instances. Since `PhoneNumber` implements
+`Castable`, you can use either `PhoneNumberCast::class` or `PhoneNumber::class` directly:
 
 ```php
 use MoonlyDays\MNO\Values\PhoneNumber;
@@ -236,17 +249,72 @@ class User extends Model
     ];
 }
 
-// Setting — accepts string or PhoneNumber, stores as E.164
+// Setting — accepts string, int, or PhoneNumber; stores as int
 $user->phone = '0712345678';
 $user->phone = PhoneNumber::from('+255712345678');
-$user->save(); // Stored as "+255712345678"
+$user->phone = 255712345678;
+$user->save(); // Stored as the integer 255712345678
 
 // Getting — returns PhoneNumber instance (or null)
 $user->phone->national();    // "0712 345 678"
 $user->phone->countryIso();  // "TZ"
+$user->phone->e164();        // "+255712345678"
 ```
 
-Always stores as E.164. Returns `null` when the database value is `null`.
+**Signatures:**
+
+- `set(Model $model, string $key, PhoneNumber|string|int|null $value, array $attributes): ?int`
+- `get(Model $model, string $key, mixed $value, array $attributes): ?PhoneNumber`
+
+`set()` coerces the value through `PhoneNumber::from()` and stores `->toInteger()`. Returns `null` when the
+incoming value is `null`. `get()` returns `null` when the database value is `null`.
+
+**Column type requirement:** the backing column must be `UNSIGNED BIGINT` — use `$table->phoneNumber('phone')`
+(see below) or `$table->unsignedBigInteger('phone')`. A `VARCHAR` column will break writes.
+
+**Region requirement on read:** because the stored integer has no leading `+`, hydration calls
+`PhoneNumber::from($int)` which needs a default parse region. `mno.country` **must** be configured, otherwise
+reads throw `InvalidPhoneNumberException`.
+
+## Schema Macro
+
+The service provider registers a `phoneNumber` macro on `Illuminate\Database\Schema\Blueprint` that defines
+the `unsigned bigInteger` column the cast expects. It returns a `ColumnDefinition` and supports the full
+chainable API (`nullable`, `unique`, `index`, `default`, etc.):
+
+```php
+use Illuminate\Database\Schema\Blueprint;
+
+Schema::create('users', function (Blueprint $table) {
+    $table->id();
+    $table->phoneNumber('phone')->unique();
+    $table->timestamps();
+});
+```
+
+Equivalent to `$table->unsignedBigInteger($column)`. Use it whenever a column will back a
+`PhoneNumberCast` / `PhoneNumber` cast attribute.
+
+## Faker Provider
+
+When the Faker generator resolves from the container, the service provider registers `PhoneNumberFaker` which
+generates valid numbers within the configured MNO (country, network codes, min/max length). Available on any
+`fake()` instance:
+
+```php
+$faker = fake();
+
+$faker->phoneNumberObject();        // PhoneNumber
+$faker->phoneNumber();              // "+255712345678" (alias of e164PhoneNumber)
+$faker->e164PhoneNumber();          // "+255712345678"
+$faker->nationalPhoneNumber();      // "0712 345 678"
+$faker->internationalPhoneNumber(); // "+255 712 345 678"
+```
+
+Picks a random network code from `MNO::networkCodes()`, then randomises a subscriber portion sized within
+`MNO::minLength()` / `MNO::maxLength()`, retrying a few times per network code until libphonenumber reports
+the result as valid. Throws `RuntimeException` if no valid number can be generated under the configured
+constraints.
 
 ## PhoneNumberFormatResource
 
@@ -318,11 +386,14 @@ config namespace (e.g., `config('mno.country')`).
 ## Important Patterns
 
 - Always use `PhoneNumber::tryFrom()` for user-provided input, `PhoneNumber::from()` when the source is trusted.
-- Always store phone numbers in E.164 format in the database. Use `PhoneNumberCast` (or `PhoneNumber::class` directly)
-  for automatic handling.
-- Length inference requires a configured country (`mno.country`). Without it, `PhoneNumberLengthException` is thrown.
+- Store phone numbers using `PhoneNumberCast` (or `PhoneNumber::class` directly) backed by a `$table->phoneNumber(...)`
+  (`unsigned bigInteger`) column. The cast persists as an integer — do not use `VARCHAR` or manually format on get/set.
+- A configured `mno.country` is required for cast reads (the stored integer needs a default parse region) and for
+  length inference (without it, `PhoneNumberLengthException` is thrown).
 - `Rule::phoneNumber()` is a macro registered by the service provider — equivalent to `PhoneNumberRule::default()`.
 - `Request::phoneNumber($key, $default)` is a macro registered by the service provider — extracts and parses a phone
   number from the request.
+- `Blueprint::phoneNumber($column)` is a schema macro registered by the service provider — defines the
+  `unsigned bigInteger` column the cast expects.
 - `PhoneNumber` instances are immutable. There is no way to modify a parsed number; create a new one instead.
 - `PhoneNumber` implements `JsonSerializable` (serializes as E.164) and `Castable` (enables direct Eloquent casting).
