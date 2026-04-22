@@ -36,8 +36,8 @@ class MnoServiceProvider extends PackageServiceProvider
             $faker->addProvider(new MsisdnFaker($faker));
         });
 
-        Rule::macro('phoneNumber', fn () => MsisdnRule::default());
-        Request::macro('phoneNumber', function (string $key, mixed $default = null): mixed {
+        Rule::macro('msisdn', fn () => MsisdnRule::default());
+        Request::macro('msisdn', function (string $key, mixed $default = null): mixed {
             if ($this->isNotFilled($key)) {
                 return value($default);
             }
@@ -45,7 +45,7 @@ class MnoServiceProvider extends PackageServiceProvider
             return Msisdn::tryFrom($this->data($key)) ?: value($default);
         });
 
-        Blueprint::macro('phoneNumber', fn (string $column): ColumnDefinition => $this->unsignedBigInteger($column));
+        Blueprint::macro('msisdn', fn (string $column): ColumnDefinition => $this->unsignedBigInteger($column));
     }
 
     protected function configureLibphonenumberPackage(): void
