@@ -64,7 +64,7 @@ class PhoneNumber implements Castable, JsonSerializable, Stringable
     /**
      * Try to parse the given number, returning null on failure.
      */
-    public static function tryFrom(string $number, ?string $region = null): ?self
+    public static function tryFrom(string|int $number, ?string $region = null): ?self
     {
         try {
             return self::from($number, $region);

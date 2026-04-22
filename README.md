@@ -9,7 +9,7 @@
 
 Laravel package for validating, normalizing, and working with MSISDN phone numbers tied to a single Mobile Network
 Operator. A wrapper around [`giggsey/libphonenumber-for-php`](https://github.com/giggsey/libphonenumber-for-php) with
-integration into Laravel's validation system, Eloquent casts, and facades.
+integration into Laravel's validation system, Eloquent casts, Faker, schema builder, and facades.
 
 Released under the [MIT License](LICENSE).
 
@@ -64,6 +64,7 @@ use MoonlyDays\MNO\Values\PhoneNumber;
 // Parse, throwing InvalidPhoneNumberException on failure
 $phone = PhoneNumber::from('+79101234567');
 $phone = PhoneNumber::from('9101234567', 'RU');
+$phone = PhoneNumber::from(79101234567, 'RU'); // integers are accepted
 
 // Safe parse, returning null on failure
 $phone = PhoneNumber::tryFrom('invalid'); // null
@@ -84,6 +85,7 @@ $phone = PhoneNumber::from('+79101234567');
 $phone->e164();          // "+79101234567"
 $phone->national();      // "8 (910) 123-45-67"
 $phone->international(); // "+7 910 123-45-67"
+$phone->toInteger();     // 79101234567  (E.164 digits without the leading plus)
 (string) $phone;         // "+79101234567"
 ```
 
@@ -101,6 +103,15 @@ $phone->toPhoneNumber();    // underlying libphonenumber\PhoneNumber
 ```
 
 Two `PhoneNumber` instances can be compared via `$a->equals($b)` (equality is based on the E.164 form).
+
+### Timezones
+
+```php
+$phone = PhoneNumber::from('+79101234567');
+
+$phone->timezone();  // "Europe/Moscow" — primary IANA identifier, or null if unknown
+$phone->timezones(); // ["Europe/Moscow", ...] — all IANA identifiers for the number
+```
 
 ### Validation
 
@@ -156,7 +167,7 @@ The service provider registers a `phoneNumber` macro on `Illuminate\Http\Request
 
 ```php
 $phone = $request->phoneNumber('phone');           // PhoneNumber or null
-$phone = $request->phoneNumber('phone', $default); // with fallback
+$phone = $request->phoneNumber('phone', $default); // with fallback (value or closure)
 ```
 
 ### Eloquent cast
@@ -176,13 +187,65 @@ class User extends Model
 }
 
 $user->phone = '+79101234567';
-$user->save(); // Stored as E.164: "+79101234567"
+$user->save(); // Stored as unsigned bigInteger: 79101234567
 
 $user->phone instanceof PhoneNumber; // true
 $user->phone->national();            // "8 (910) 123-45-67"
 ```
 
-The cast accepts either a string or a `PhoneNumber` instance when setting, and always persists the E.164 form.
+The cast accepts a string, integer, or `PhoneNumber` instance when setting, and persists the E.164 digits
+as an unsigned integer (the leading `+` is stripped). When reading back, the configured `MNO_COUNTRY` is
+used as the default region for parsing, so make sure it is set.
+
+### Schema macro
+
+A `phoneNumber` macro on `Illuminate\Database\Schema\Blueprint` defines an `unsigned bigInteger` column that
+matches the storage format used by the cast:
+
+```php
+use Illuminate\Database\Schema\Blueprint;
+
+Schema::create('users', function (Blueprint $table) {
+    $table->id();
+    $table->phoneNumber('phone')->unique();
+    $table->timestamps();
+});
+```
+
+### Faker provider
+
+When the Faker generator resolves from the container, the package registers a provider for generating valid
+numbers within the configured MNO (country, network codes, and length constraints):
+
+```php
+$faker = fake();
+
+$faker->phoneNumberObject();       // PhoneNumber
+$faker->phoneNumber();             // "+79101234567" (E.164)
+$faker->e164PhoneNumber();         // "+79101234567"
+$faker->nationalPhoneNumber();     // "8 (910) 123-45-67"
+$faker->internationalPhoneNumber();// "+7 910 123-45-67"
+```
+
+### JSON resource
+
+`PhoneNumberFormatResource` exposes the operator's format metadata as a JSON resource, for API responses
+that need to tell clients about expected number shape:
+
+```php
+use MoonlyDays\MNO\Resources\PhoneNumberFormatResource;
+
+return [
+    'format' => PhoneNumberFormatResource::make(),
+];
+// {
+//   "countryCode": 7,
+//   "country": "RU",
+//   "minLength": 10,
+//   "maxLength": 10,
+//   "networkCodes": ["910", "911", "912"]
+// }
+```
 
 ### MNO facade
 
@@ -214,12 +277,12 @@ use MoonlyDays\MNO\Values\Carrier;
 $country = Country::from('RU');       // throws InvalidCountryException on unknown code
 $country = Country::tryFrom('RU');    // returns null on failure
 
-$country->isoCode();               // "RU"
-$country->countryCode();           // 7
-$country->name();                  // "Russia"
-$country->exampleNumber();         // PhoneNumber|null
+$country->isoCode();                // "RU"
+$country->countryCode();            // 7
+$country->name();                   // "Russia"
+$country->exampleNumber();          // PhoneNumber|null
 $country->isMobileNumberPortable(); // bool
-$country->carriers();              // array<string, Carrier> — all carriers with allocations
+$country->carriers();               // array<string, Carrier> — all carriers with allocations
 
 // Carrier — a carrier within a country
 $carrier = Carrier::from('RU', 'MTS');    // throws InvalidCarrierException on miss
@@ -256,12 +319,4 @@ PhoneNumber::macro('isRussian', function (): bool {
 });
 
 PhoneNumber::from('+79101234567')->isRussian(); // true
-```
-
-## Testing
-
-```bash
-composer test       # Pest
-composer analyse    # PHPStan (level 5)
-composer lint       # Laravel Pint
 ```

@@ -100,6 +100,20 @@ describe('PhoneNumber::tryFrom', function (): void {
     it('returns null for invalid input', function (): void {
         expect(PhoneNumber::tryFrom('not-a-number'))->toBeNull();
     });
+
+    it('accepts an integer and parses it against the given region', function (): void {
+        $e164 = mobileExampleFor('TZ');
+        $int = (int) ltrim($e164, '+');
+
+        $phone = PhoneNumber::tryFrom($int, 'TZ');
+
+        expect($phone)->toBeInstanceOf(PhoneNumber::class)
+            ->and($phone->e164())->toBe($e164);
+    });
+
+    it('returns null for an unparseable integer', function (): void {
+        expect(PhoneNumber::tryFrom(1234, 'TZ'))->toBeNull();
+    });
 });
 
 describe('PhoneNumber formatting', function (): void {
