@@ -42,13 +42,13 @@ class PhoneNumber implements Castable, JsonSerializable, Stringable
      *
      * @throws InvalidPhoneNumberException
      */
-    public static function from(string $number, ?string $region = null): self
+    public static function from(string|int $number, ?string $region = null): self
     {
         $region ??= MNO::countryIsoCode();
         $util = PhoneNumberUtil::getInstance();
 
         try {
-            $parsed = $util->parse($number, $region);
+            $parsed = $util->parse((string) $number, $region);
         } catch (NumberParseException $numberParseException) {
             throw InvalidPhoneNumberException::forNumber($number, $numberParseException);
         }

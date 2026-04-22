@@ -30,16 +30,16 @@ class PhoneNumberCast implements CastsAttributes
      *
      * @param  PhoneNumber|string|null  $value
      */
-    public function set(Model $model, string $key, mixed $value, array $attributes): ?string
+    public function set(Model $model, string $key, mixed $value, array $attributes): ?int
     {
         if ($value === null) {
             return null;
         }
 
-        if ($value instanceof PhoneNumber) {
-            return $value->e164();
+        if (! $value instanceof PhoneNumber) {
+            $value = PhoneNumber::from($value);
         }
 
-        return PhoneNumber::from($value)->e164();
+        return $value->toInteger();
     }
 }
