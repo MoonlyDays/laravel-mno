@@ -13,7 +13,7 @@ function validate(array $data, array $rules): Illuminate\Contracts\Validation\Va
     return Validator::make($data, $rules);
 }
 
-describe('PhoneNumberRule basic validation', function (): void {
+describe('MsisdnRule basic validation', function (): void {
     it('passes for a valid phone number', function (): void {
         $validator = validate(
             ['phone' => mobileExampleFor('TZ')],
@@ -42,7 +42,7 @@ describe('PhoneNumberRule basic validation', function (): void {
     });
 });
 
-describe('PhoneNumberRule country constraint', function (): void {
+describe('MsisdnRule country constraint', function (): void {
     it('passes when the number matches one of the allowed countries', function (): void {
         $rule = (new MsisdnRule())->country('TZ', 'KE');
 
@@ -62,7 +62,7 @@ describe('PhoneNumberRule country constraint', function (): void {
     });
 });
 
-describe('PhoneNumberRule length constraints', function (): void {
+describe('MsisdnRule length constraints', function (): void {
     it('fails when the national number is shorter than min length', function (): void {
         $rule = (new MsisdnRule())->minLength(20);
 
@@ -82,7 +82,7 @@ describe('PhoneNumberRule length constraints', function (): void {
     });
 });
 
-describe('PhoneNumberRule network code constraint', function (): void {
+describe('MsisdnRule network code constraint', function (): void {
     it('passes when the number starts with an allowed network code', function (): void {
         $util = PhoneNumberUtil::getInstance();
         $example = $util->getExampleNumberForType('TZ', PhoneNumberType::MOBILE);
@@ -112,7 +112,7 @@ describe('PhoneNumberRule network code constraint', function (): void {
     });
 });
 
-describe('PhoneNumberRule::default', function (): void {
+describe('MsisdnRule::default', function (): void {
     afterEach(fn () => MsisdnRule::defaults(null));
 
     it('produces a rule configured from the MNO service', function (): void {
@@ -147,10 +147,10 @@ describe('PhoneNumberRule::default', function (): void {
     });
 });
 
-describe('Rule::phoneNumber macro', function (): void {
-    it('is registered and returns a PhoneNumberRule', function (): void {
+describe('Rule::msisdn macro', function (): void {
+    it('is registered and returns a MsisdnRule', function (): void {
         config()->set('mno.country', 'TZ');
 
-        expect(Rule::phoneNumber())->toBeInstanceOf(MsisdnRule::class);
+        expect(Rule::msisdn())->toBeInstanceOf(MsisdnRule::class);
     });
 });

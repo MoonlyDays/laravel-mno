@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use libphonenumber\PhoneNumberToCarrierMapper;
@@ -28,14 +27,10 @@ it('binds PhoneNumberToCarrierMapper to the shared instance', function (): void 
     expect(app(PhoneNumberToCarrierMapper::class))->toBe(PhoneNumberToCarrierMapper::getInstance());
 });
 
-it('registers the Rule::phoneNumber macro', function (): void {
-    expect(Rule::phoneNumber())->toBeInstanceOf(MsisdnRule::class);
+it('registers the Rule::msisdn macro', function (): void {
+    expect(Rule::msisdn())->toBeInstanceOf(MsisdnRule::class);
 });
 
-it('registers the Request::phoneNumber macro', function (): void {
-    expect(Request::hasMacro('phoneNumber'))->toBeTrue();
-});
-
-it('registers the Blueprint::phoneNumber macro', function (): void {
-    expect(Blueprint::hasMacro('phoneNumber'))->toBeTrue();
+it('registers the Request::msisdn macro', function (): void {
+    expect(Request::hasMacro('msisdn'))->toBeTrue();
 });

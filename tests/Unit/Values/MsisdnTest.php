@@ -9,7 +9,7 @@ use libphonenumber\PhoneNumberUtil;
 use MoonlyDays\MNO\Exceptions\InvalidMsisdnException;
 use MoonlyDays\MNO\Values\Msisdn;
 
-describe('PhoneNumber::from', function (): void {
+describe('Msisdn::from', function (): void {
     it('parses a valid E.164 number without a region', function (): void {
         $e164 = mobileExampleFor('TZ');
 
@@ -44,11 +44,11 @@ describe('PhoneNumber::from', function (): void {
         expect($phone->countryIso())->toBe('GB');
     });
 
-    it('throws InvalidPhoneNumberException for unparseable input', function (): void {
+    it('throws InvalidMsisdnException for unparseable input', function (): void {
         Msisdn::from('not-a-number');
     })->throws(InvalidMsisdnException::class);
 
-    it('throws InvalidPhoneNumberException for parseable-but-invalid numbers', function (): void {
+    it('throws InvalidMsisdnException for parseable-but-invalid numbers', function (): void {
         // A short string that parses but is not a valid number.
         Msisdn::from('+1234');
     })->throws(InvalidMsisdnException::class);
@@ -62,7 +62,7 @@ describe('PhoneNumber::from', function (): void {
             return;
         }
 
-        $this->fail('Expected InvalidPhoneNumberException was not thrown.');
+        $this->fail('Expected InvalidMsisdnException was not thrown.');
     });
 
     it('accepts an integer and parses it against the given region', function (): void {
@@ -85,13 +85,13 @@ describe('PhoneNumber::from', function (): void {
         expect($phone->e164())->toBe($e164);
     });
 
-    it('throws InvalidPhoneNumberException when given an unparseable integer', function (): void {
+    it('throws InvalidMsisdnException when given an unparseable integer', function (): void {
         Msisdn::from(1234, 'TZ');
     })->throws(InvalidMsisdnException::class);
 });
 
-describe('PhoneNumber::tryFrom', function (): void {
-    it('returns a PhoneNumber for valid input', function (): void {
+describe('Msisdn::tryFrom', function (): void {
+    it('returns a Msisdn for valid input', function (): void {
         $phone = Msisdn::tryFrom(mobileExampleFor('TZ'));
 
         expect($phone)->toBeInstanceOf(Msisdn::class);
@@ -116,7 +116,7 @@ describe('PhoneNumber::tryFrom', function (): void {
     });
 });
 
-describe('PhoneNumber formatting', function (): void {
+describe('Msisdn formatting', function (): void {
     beforeEach(function (): void {
         $this->phone = Msisdn::from(mobileExampleFor('TZ'));
     });
@@ -139,7 +139,7 @@ describe('PhoneNumber formatting', function (): void {
     });
 });
 
-describe('PhoneNumber::toInteger', function (): void {
+describe('Msisdn::toInteger', function (): void {
     it('returns an int', function (): void {
         $phone = Msisdn::from(mobileExampleFor('TZ'));
 
@@ -188,7 +188,7 @@ describe('PhoneNumber::toInteger', function (): void {
     });
 });
 
-describe('PhoneNumber decomposition', function (): void {
+describe('Msisdn decomposition', function (): void {
     it('exposes national number, network code and subscriber number', function (): void {
         $phone = Msisdn::from(mobileExampleFor('TZ'));
 
@@ -209,7 +209,7 @@ describe('PhoneNumber decomposition', function (): void {
     });
 });
 
-describe('PhoneNumber::equals', function (): void {
+describe('Msisdn::equals', function (): void {
     it('returns true for two instances with the same E.164 value', function (): void {
         $e164 = mobileExampleFor('TZ');
 
@@ -224,7 +224,7 @@ describe('PhoneNumber::equals', function (): void {
     });
 });
 
-describe('PhoneNumber macroable', function (): void {
+describe('Msisdn macroable', function (): void {
     it('supports registering and calling macros', function (): void {
         Msisdn::macro('shout', fn (): string => mb_strtoupper($this->e164()));
 
@@ -234,7 +234,7 @@ describe('PhoneNumber macroable', function (): void {
     });
 });
 
-describe('PhoneNumber::timezones', function (): void {
+describe('Msisdn::timezones', function (): void {
     it('returns timezone identifiers for a valid number', function (): void {
         $phone = Msisdn::from(mobileExampleFor('TZ'));
 
@@ -264,7 +264,7 @@ describe('PhoneNumber::timezones', function (): void {
     });
 });
 
-describe('PhoneNumber::timezone', function (): void {
+describe('Msisdn::timezone', function (): void {
     it('returns the primary timezone as a string', function (): void {
         $phone = Msisdn::from(mobileExampleFor('TZ'));
 

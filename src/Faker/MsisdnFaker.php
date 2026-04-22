@@ -68,7 +68,7 @@ class MsisdnFaker extends Base
         }
 
         throw new RuntimeException(
-            "Unable to generate a valid phone number for region [$region] within the configured MNO constraints."
+            "Unable to generate a valid phone number for region [{$region}] within the configured MNO constraints."
         );
     }
 }

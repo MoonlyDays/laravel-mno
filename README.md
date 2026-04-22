@@ -56,12 +56,12 @@ metadata for the configured country, walking the `number_types` priority list in
 
 ## Usage
 
-### Creating a PhoneNumber
+### Creating a Msisdn
 
 ```php
 use MoonlyDays\MNO\Values\Msisdn;
 
-// Parse, throwing InvalidPhoneNumberException on failure
+// Parse, throwing InvalidMsisdnException on failure
 $phone = Msisdn::from('+79101234567');
 $phone = Msisdn::from('9101234567', 'RU');
 $phone = Msisdn::from(79101234567, 'RU'); // integers are accepted
@@ -70,17 +70,17 @@ $phone = Msisdn::from(79101234567, 'RU'); // integers are accepted
 $phone = Msisdn::tryFrom('invalid'); // null
 
 // Global helper
-$phone = phoneNumber('+79101234567');
+$phone = msisdn('+79101234567');
 ```
 
-`PhoneNumber` is a lightweight value object wrapping libphonenumber's native `PhoneNumber`. It implements
+`Msisdn` is a lightweight value object wrapping libphonenumber's native `PhoneNumber`. It implements
 `Stringable` (casting to string produces the E.164 form), `JsonSerializable` (serializes as E.164), and
 `Castable` (can be used directly as an Eloquent cast). It also uses Laravel's `Macroable` and `Tappable` traits.
 
 ### Formatting
 
 ```php
-$phone = PhoneNumber::from('+79101234567');
+$phone = Msisdn::from('+79101234567');
 
 $phone->e164();          // "+79101234567"
 $phone->national();      // "8 (910) 123-45-67"
@@ -92,7 +92,7 @@ $phone->toInteger();     // 79101234567  (E.164 digits without the leading plus)
 ### Retrieving number components
 
 ```php
-$phone = PhoneNumber::from('+79101234567');
+$phone = Msisdn::from('+79101234567');
 
 $phone->countryCode();      // 7
 $phone->countryIso();       // "RU"
@@ -102,12 +102,12 @@ $phone->subscriberNumber(); // "1234567"
 $phone->toPhoneNumber();    // underlying libphonenumber\PhoneNumber
 ```
 
-Two `PhoneNumber` instances can be compared via `$a->equals($b)` (equality is based on the E.164 form).
+Two `Msisdn` instances can be compared via `$a->equals($b)` (equality is based on the E.164 form).
 
 ### Timezones
 
 ```php
-$phone = PhoneNumber::from('+79101234567');
+$phone = Msisdn::from('+79101234567');
 
 $phone->timezone();  // "Europe/Moscow" — primary IANA identifier, or null if unknown
 $phone->timezones(); // ["Europe/Moscow", ...] — all IANA identifiers for the number
@@ -118,9 +118,9 @@ $phone->timezones(); // ["Europe/Moscow", ...] — all IANA identifiers for the 
 ```php
 use Illuminate\Validation\Rule;
 
-// Use the Rule::phoneNumber() macro — picks up defaults from config
+// Use the Rule::msisdn() macro — picks up defaults from config
 $request->validate([
-    'phone' => ['required', Rule::phoneNumber()],
+    'phone' => ['required', Rule::msisdn()],
 ]);
 ```
 
@@ -150,7 +150,7 @@ Validation failures translate the following keys, which you can publish or overr
 
 #### Overriding the default rule
 
-`PhoneNumberRule::defaults()` lets you swap in a custom resolver used by `Rule::phoneNumber()`:
+`MsisdnRule::defaults()` lets you swap in a custom resolver used by `Rule::msisdn()`:
 
 ```php
 use MoonlyDays\MNO\Rules\MsisdnRule;
@@ -163,16 +163,16 @@ MsisdnRule::defaults(fn () => (new MsisdnRule())
 
 ### Request macro
 
-The service provider registers a `phoneNumber` macro on `Illuminate\Http\Request`:
+The service provider registers a `msisdn` macro on `Illuminate\Http\Request`:
 
 ```php
-$phone = $request->phoneNumber('phone');           // PhoneNumber or null
-$phone = $request->phoneNumber('phone', $default); // with fallback (value or closure)
+$phone = $request->msisdn('phone');           // Msisdn or null
+$phone = $request->msisdn('phone', $default); // with fallback (value or closure)
 ```
 
 ### Eloquent cast
 
-Since `PhoneNumber` implements `Castable`, you can use it directly as an Eloquent cast. `PhoneNumberCast` is
+Since `Msisdn` implements `Castable`, you can use it directly as an Eloquent cast. `MsisdnCast` is
 also available if you prefer to be explicit:
 
 ```php
@@ -182,7 +182,7 @@ use MoonlyDays\MNO\Values\Msisdn;
 class User extends Model
 {
     protected $casts = [
-        'phone' => Msisdn::class, // or PhoneNumberCast::class
+        'phone' => Msisdn::class, // or MsisdnCast::class
     ];
 }
 
@@ -193,24 +193,12 @@ $user->phone instanceof Msisdn; // true
 $user->phone->national();            // "8 (910) 123-45-67"
 ```
 
-The cast accepts a string, integer, or `PhoneNumber` instance when setting, and persists the E.164 digits
+The cast accepts a string, integer, or `Msisdn` instance when setting, and persists the E.164 digits
 as an unsigned integer (the leading `+` is stripped). When reading back, the configured `MNO_COUNTRY` is
 used as the default region for parsing, so make sure it is set.
 
-### Schema macro
-
-A `phoneNumber` macro on `Illuminate\Database\Schema\Blueprint` defines an `unsigned bigInteger` column that
-matches the storage format used by the cast:
-
-```php
-use Illuminate\Database\Schema\Blueprint;
-
-Schema::create('users', function (Blueprint $table) {
-    $table->id();
-    $table->phoneNumber('phone')->unique();
-    $table->timestamps();
-});
-```
+Back the cast with an `unsigned bigInteger` column (e.g., `$table->unsignedBigInteger('phone')`). A
+`VARCHAR` column will break writes.
 
 ### Faker provider
 
@@ -220,16 +208,14 @@ numbers within the configured MNO (country, network codes, and length constraint
 ```php
 $faker = fake();
 
-$faker->phoneNumberObject();       // PhoneNumber
-$faker->phoneNumber();             // "+79101234567" (E.164)
-$faker->e164PhoneNumber();         // "+79101234567"
-$faker->nationalPhoneNumber();     // "8 (910) 123-45-67"
-$faker->internationalPhoneNumber();// "+7 910 123-45-67"
+$faker->msisdn();             // Msisdn value object
+$faker->msisdn()->e164();     // "+79101234567"
+$faker->msisdn()->national(); // "8 (910) 123-45-67"
 ```
 
 ### JSON resource
 
-`PhoneNumberFormatResource` exposes the operator's format metadata as a JSON resource, for API responses
+`MsisdnFormatResource` exposes the operator's format metadata as a JSON resource, for API responses
 that need to tell clients about expected number shape:
 
 ```php
@@ -260,7 +246,7 @@ MNO::carrier();        // Carrier instance for the configured MNO
 MNO::networkCodes();   // ["910", "911", "912"]
 MNO::minLength();      // 10
 MNO::maxLength();      // 10
-MNO::exampleNumber();  // PhoneNumber|null
+MNO::exampleNumber();  // Msisdn|null
 MNO::numberTypes();    // array<NumberType>
 ```
 
@@ -280,7 +266,7 @@ $country = Country::tryFrom('RU');    // returns null on failure
 $country->isoCode();                // "RU"
 $country->countryCode();            // 7
 $country->name();                   // "Russia"
-$country->exampleNumber();          // PhoneNumber|null
+$country->exampleNumber();          // Msisdn|null
 $country->isMobileNumberPortable(); // bool
 $country->carriers();               // array<string, Carrier> — all carriers with allocations
 
@@ -308,7 +294,7 @@ php artisan mno:show RU MTS       # show carrier details with network codes
 
 ### Extending via macros
 
-`PhoneNumber` uses the `Macroable` trait, so you can add project-specific helpers:
+`Msisdn` uses the `Macroable` trait, so you can add project-specific helpers:
 
 ```php
 use MoonlyDays\MNO\Values\Msisdn;

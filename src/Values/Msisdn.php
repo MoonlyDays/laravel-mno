@@ -38,7 +38,7 @@ class Msisdn implements Castable, JsonSerializable, Stringable
     }
 
     /**
-     * Parse the given number into a PhoneNumber value object.
+     * Parse the given number into a Msisdn value object.
      *
      * @throws InvalidMsisdnException
      */
@@ -197,7 +197,7 @@ class Msisdn implements Castable, JsonSerializable, Stringable
     }
 
     /**
-     * Determine if two PhoneNumber instances represent the same number.
+     * Determine if two Msisdn instances represent the same number.
      */
     public function equals(self $other): bool
     {

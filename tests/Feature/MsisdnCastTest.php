@@ -16,7 +16,7 @@ function e164ToInt(string $e164): int
     return (int) Str::chopStart($e164, PhoneNumberUtil::PLUS_SIGN);
 }
 
-describe('PhoneNumberCast::get', function (): void {
+describe('MsisdnCast::get', function (): void {
     it('returns null when the raw value is null', function (): void {
         $cast = new MsisdnCast();
         $model = new class extends Model {};
@@ -24,7 +24,7 @@ describe('PhoneNumberCast::get', function (): void {
         expect($cast->get($model, 'phone', null, []))->toBeNull();
     });
 
-    it('hydrates a PhoneNumber from a stored E.164 string', function (): void {
+    it('hydrates a Msisdn from a stored E.164 string', function (): void {
         $cast = new MsisdnCast();
         $model = new class extends Model {};
         $e164 = mobileExampleFor('TZ');
@@ -35,7 +35,7 @@ describe('PhoneNumberCast::get', function (): void {
             ->and($phone->e164())->toBe($e164);
     });
 
-    it('hydrates a PhoneNumber from a stored integer', function (): void {
+    it('hydrates a Msisdn from a stored integer', function (): void {
         config()->set('mno.country', 'TZ');
         $cast = new MsisdnCast();
         $model = new class extends Model {};
@@ -56,7 +56,7 @@ describe('PhoneNumberCast::get', function (): void {
     })->throws(InvalidMsisdnException::class);
 });
 
-describe('PhoneNumberCast::set', function (): void {
+describe('MsisdnCast::set', function (): void {
     it('returns null when the incoming value is null', function (): void {
         $cast = new MsisdnCast();
         $model = new class extends Model {};
@@ -64,7 +64,7 @@ describe('PhoneNumberCast::set', function (): void {
         expect($cast->set($model, 'phone', null, []))->toBeNull();
     });
 
-    it('accepts a PhoneNumber instance and stores its E.164 form (without plus)', function (): void {
+    it('accepts a Msisdn instance and stores its E.164 form (without plus)', function (): void {
         $cast = new MsisdnCast();
         $model = new class extends Model {};
         $phone = Msisdn::from(mobileExampleFor('TZ'));
@@ -104,7 +104,7 @@ describe('PhoneNumberCast::set', function (): void {
     })->throws(InvalidMsisdnException::class);
 });
 
-describe('PhoneNumberCast on Eloquent models', function (): void {
+describe('MsisdnCast on Eloquent models', function (): void {
     it('round-trips a value through an Eloquent attribute cast', function (): void {
         $model = new class extends Model
         {
@@ -123,7 +123,7 @@ describe('PhoneNumberCast on Eloquent models', function (): void {
             ->and($model->phone->e164())->toBe($e164);
     });
 
-    it('rehydrates a PhoneNumber from an integer attribute loaded from storage', function (): void {
+    it('rehydrates a Msisdn from an integer attribute loaded from storage', function (): void {
         config()->set('mno.country', 'TZ');
 
         $model = new class extends Model
@@ -143,8 +143,8 @@ describe('PhoneNumberCast on Eloquent models', function (): void {
     });
 });
 
-describe('PhoneNumber as a Castable', function (): void {
-    it('resolves to PhoneNumberCast via castUsing()', function (): void {
+describe('Msisdn as a Castable', function (): void {
+    it('resolves to MsisdnCast via castUsing()', function (): void {
         expect(Msisdn::castUsing([]))->toBe(MsisdnCast::class);
     });
 

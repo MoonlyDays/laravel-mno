@@ -6,7 +6,7 @@ use libphonenumber\NumberParseException;
 use MoonlyDays\MNO\Exceptions\InvalidMsisdnException;
 use MoonlyDays\MNO\Exceptions\PhoneNumberLengthException;
 
-describe('InvalidPhoneNumberException', function (): void {
+describe('InvalidMsisdnException', function (): void {
     it('mentions the offending number in its message', function (): void {
         $exception = InvalidMsisdnException::forNumber('+123');
 

@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use MoonlyDays\MNO\MnoService;
 use MoonlyDays\MNO\Resources\MsisdnFormatResource;
 
-describe('PhoneNumberFormatResource', function (): void {
+describe('MsisdnFormatResource', function (): void {
     beforeEach(function (): void {
         config()->set('mno.country', 'TZ');
         config()->set('mno.network_codes', ['74', '75', '76']);

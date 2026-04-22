@@ -1,10 +1,9 @@
 ---
 name: laravel-mno-development
 description: >-
-  Use this skill when working with phone number fields, PhoneNumberRule validation,
-  PhoneNumberCast, the MNO facade, PhoneNumberFormatResource, the Blueprint::phoneNumber
-  schema macro, or the Faker provider. Contains full API signatures, code examples,
-  and configuration reference.
+  Use this skill when working with phone number fields, MsisdnRule validation,
+  MsisdnCast, the MNO facade, MsisdnFormatResource, or the Faker provider.
+  Contains full API signatures, code examples, and configuration reference.
 ---
 
 # moonlydays/laravel-mno
@@ -15,22 +14,22 @@ Laravel package for validating, normalizing, and working with phone numbers for 
 
 Namespace: `MoonlyDays\MNO`
 
-## PhoneNumber Value Object
+## Msisdn Value Object
 
 The core of the package. An immutable, immediately-validated phone number representation implementing `Castable`,
 `JsonSerializable`, and `Stringable`.
 
 **Creating instances:**
 
-- `PhoneNumber::from(string|int $number, ?string $region = null): PhoneNumber` — parse and validate. Accepts
+- `Msisdn::from(string|int $number, ?string $region = null): Msisdn` — parse and validate. Accepts
   either the E.164 string (e.g. `"+255712345678"`) or the integer form (e.g. `255712345678`, as produced by
-  `toInteger()` or stored by the cast). Throws `InvalidPhoneNumberException` on failure. Use when input is
+  `toInteger()` or stored by the cast). Throws `InvalidMsisdnException` on failure. Use when input is
   trusted or you want to fail loudly.
-- `PhoneNumber::tryFrom(string|int $number, ?string $region = null): ?PhoneNumber` — returns `null` on failure. Use for
+- `Msisdn::tryFrom(string|int $number, ?string $region = null): ?Msisdn` — returns `null` on failure. Use for
   user input.
-- `phoneNumber(string $number, ?string $region = null): PhoneNumber` — global helper, equivalent to
-  `PhoneNumber::from()`.
-- `PhoneNumber::castUsing(array $arguments): string` — returns `PhoneNumberCast::class`, enabling direct use as an
+- `msisdn(string $number, ?string $region = null): Msisdn` — global helper, equivalent to
+  `Msisdn::from()`.
+- `Msisdn::castUsing(array $arguments): string` — returns `MsisdnCast::class`, enabling direct use as an
   Eloquent cast via the `Castable` interface.
 
 When `$region` is omitted, the configured country (`config('mno.country')`, via `MNO::countryIsoCode()`) is used as the
@@ -48,7 +47,7 @@ $phone = Msisdn::from(255712345678, 'TZ'); // int form, e.g. from an integer col
 $phone = Msisdn::tryFrom($request->input('phone'));
 
 // Global helper
-$phone = phoneNumber('+255712345678');
+$phone = msisdn('+255712345678');
 ```
 
 **Formatting outputs:**
@@ -57,7 +56,7 @@ $phone = phoneNumber('+255712345678');
 - `national(): string` — national format: `0712 345 678`
 - `international(): string` — international format: `+255 712 345 678`
 - `toInteger(): int` — E.164 digits without the leading `+` as an integer: `255712345678`. Used by
-  `PhoneNumberCast` for storage.
+  `MsisdnCast` for storage.
 - `__toString()` returns E.164.
 
 **Component extraction:**
@@ -77,10 +76,10 @@ $phone = phoneNumber('+255712345678');
 **Other methods:**
 
 - `toPhoneNumber(): libphonenumber\PhoneNumber` — underlying libphonenumber instance
-- `equals(PhoneNumber $other): bool` — comparison by E.164
+- `equals(Msisdn $other): bool` — comparison by E.164
 - `jsonSerialize(): string` — returns E.164, enabling `json_encode()` support
 
-`PhoneNumber` uses `Macroable` and `Tappable` traits.
+`Msisdn` uses `Macroable` and `Tappable` traits.
 
 ## Country Value Object
 
@@ -108,7 +107,7 @@ ISO 3166-1 alpha-2 country wrapper with carrier data and phone number metadata.
 
 **Phone number metadata:**
 
-- `exampleNumber(): ?PhoneNumber` — example number from libphonenumber
+- `exampleNumber(): ?Msisdn` — example number from libphonenumber
 - `minPhoneNumberLength(array<NumberType> $numberTypes): int` — minimum national length
 - `maxPhoneNumberLength(array<NumberType> $numberTypes): int` — maximum national length
 - `possiblePhoneNumberLengths(array<NumberType> $numberTypes): array<int>` — all possible lengths (throws
@@ -138,7 +137,7 @@ Carrier within a country, holding NDC network codes.
 
 **Matching:**
 
-- `matches(PhoneNumber $number): bool` — check if phone number belongs to carrier
+- `matches(Msisdn $number): bool` — check if phone number belongs to carrier
 - `owns(string $networkCode): bool` — check if carrier owns given NDC
 - `equals(self $other): bool` — compare carriers (by country + name)
 
@@ -146,14 +145,14 @@ Carrier within a country, holding NDC network codes.
 
 ## Request Macro
 
-The service provider registers a `phoneNumber` macro on `Illuminate\Http\Request`:
+The service provider registers a `msisdn` macro on `Illuminate\Http\Request`:
 
 ```php
-$phone = $request->phoneNumber('phone');          // PhoneNumber or null
-$phone = $request->phoneNumber('phone', $default); // with fallback
+$phone = $request->msisdn('phone');          // Msisdn or null
+$phone = $request->msisdn('phone', $default); // with fallback
 ```
 
-Extracts the value from the request and parses it via `PhoneNumber::tryFrom()`.
+Extracts the value from the request and parses it via `Msisdn::tryFrom()`.
 
 ## MNO Facade and MnoService
 
@@ -171,7 +170,7 @@ MNO::carrier();        // Carrier value object for configured MNO
 MNO::networkCodes();   // ["71", "74", "75"] — configured NDC prefixes
 MNO::minLength();      // 9 — minimum national number length
 MNO::maxLength();      // 9 — maximum national number length
-MNO::exampleNumber();  // PhoneNumber|null — example number for country
+MNO::exampleNumber();  // Msisdn|null — example number for country
 MNO::numberTypes();    // [NumberType::Mobile, NumberType::General]
 ```
 
@@ -183,7 +182,7 @@ If no metadata is available or no type exposes usable lengths, `PhoneNumberLengt
 
 ## Validation Rule
 
-`PhoneNumberRule` implements Laravel's `ValidationRule` interface with a fluent API.
+`MsisdnRule` implements Laravel's `ValidationRule` interface with a fluent API.
 
 ```php
 use Illuminate\Validation\Rule;
@@ -191,7 +190,7 @@ use MoonlyDays\MNO\Rules\MsisdnRule;
 
 // Default rule — pre-configured from config (country, networkCodes, min/maxLength)
 $request->validate([
-    'phone' => ['required', Rule::phoneNumber()],
+    'phone' => ['required', Rule::msisdn()],
 ]);
 
 // Custom rule with fluent API
@@ -214,13 +213,13 @@ $request->validate([
 - `minLength(int $length): static` — minimum national number length
 - `maxLength(int $length): static` — maximum national number length
 
-**`PhoneNumberRule::default()`** creates a rule pre-configured from the `mno.*` config (country, networkCodes,
+**`MsisdnRule::default()`** creates a rule pre-configured from the `mno.*` config (country, networkCodes,
 minLength, maxLength).
 
-**`PhoneNumberRule::defaults(?callable $resolver)`** sets a custom resolver for `default()`:
+**`MsisdnRule::defaults(?callable $resolver)`** sets a custom resolver for `default()`:
 
 ```php
-PhoneNumberRule::defaults(fn () => (new PhoneNumberRule())
+MsisdnRule::defaults(fn () => (new MsisdnRule())
     ->country('US', 'CA')
     ->minLength(10)
     ->maxLength(10)
@@ -235,9 +234,9 @@ prefix.
 
 ## Eloquent Cast
 
-`PhoneNumberCast` stores phone numbers as an **unsigned bigInteger** in the database (the E.164 digits
-without the leading `+`) and hydrates them as `PhoneNumber` instances. Since `PhoneNumber` implements
-`Castable`, you can use either `PhoneNumberCast::class` or `PhoneNumber::class` directly:
+`MsisdnCast` stores phone numbers as an **unsigned bigInteger** in the database (the E.164 digits
+without the leading `+`) and hydrates them as `Msisdn` instances. Since `Msisdn` implements
+`Castable`, you can use either `MsisdnCast::class` or `Msisdn::class` directly:
 
 ```php
 use MoonlyDays\MNO\Values\Msisdn;
@@ -245,17 +244,17 @@ use MoonlyDays\MNO\Values\Msisdn;
 class User extends Model
 {
     protected $casts = [
-        'phone' => Msisdn::class, // or PhoneNumberCast::class
+        'phone' => Msisdn::class, // or MsisdnCast::class
     ];
 }
 
-// Setting — accepts string, int, or PhoneNumber; stores as int
+// Setting — accepts string, int, or Msisdn; stores as int
 $user->phone = '0712345678';
 $user->phone = Msisdn::from('+255712345678');
 $user->phone = 255712345678;
 $user->save(); // Stored as the integer 255712345678
 
-// Getting — returns PhoneNumber instance (or null)
+// Getting — returns Msisdn instance (or null)
 $user->phone->national();    // "0712 345 678"
 $user->phone->countryIso();  // "TZ"
 $user->phone->e164();        // "+255712345678"
@@ -263,52 +262,31 @@ $user->phone->e164();        // "+255712345678"
 
 **Signatures:**
 
-- `set(Model $model, string $key, PhoneNumber|string|int|null $value, array $attributes): ?int`
-- `get(Model $model, string $key, mixed $value, array $attributes): ?PhoneNumber`
+- `set(Model $model, string $key, Msisdn|string|int|null $value, array $attributes): ?int`
+- `get(Model $model, string $key, mixed $value, array $attributes): ?Msisdn`
 
-`set()` coerces the value through `PhoneNumber::from()` and stores `->toInteger()`. Returns `null` when the
+`set()` coerces the value through `Msisdn::from()` and stores `->toInteger()`. Returns `null` when the
 incoming value is `null`. `get()` returns `null` when the database value is `null`.
 
-**Column type requirement:** the backing column must be `UNSIGNED BIGINT` — use `$table->phoneNumber('phone')`
-(see below) or `$table->unsignedBigInteger('phone')`. A `VARCHAR` column will break writes.
+**Column type requirement:** the backing column must be `UNSIGNED BIGINT` — use
+`$table->unsignedBigInteger('phone')`. A `VARCHAR` column will break writes.
 
 **Region requirement on read:** because the stored integer has no leading `+`, hydration calls
-`PhoneNumber::from($int)` which needs a default parse region. `mno.country` **must** be configured, otherwise
-reads throw `InvalidPhoneNumberException`.
-
-## Schema Macro
-
-The service provider registers a `phoneNumber` macro on `Illuminate\Database\Schema\Blueprint` that defines
-the `unsigned bigInteger` column the cast expects. It returns a `ColumnDefinition` and supports the full
-chainable API (`nullable`, `unique`, `index`, `default`, etc.):
-
-```php
-use Illuminate\Database\Schema\Blueprint;
-
-Schema::create('users', function (Blueprint $table) {
-    $table->id();
-    $table->phoneNumber('phone')->unique();
-    $table->timestamps();
-});
-```
-
-Equivalent to `$table->unsignedBigInteger($column)`. Use it whenever a column will back a
-`PhoneNumberCast` / `PhoneNumber` cast attribute.
+`Msisdn::from($int)` which needs a default parse region. `mno.country` **must** be configured, otherwise
+reads throw `InvalidMsisdnException`.
 
 ## Faker Provider
 
-When the Faker generator resolves from the container, the service provider registers `PhoneNumberFaker` which
+When the Faker generator resolves from the container, the service provider registers `MsisdnFaker` which
 generates valid numbers within the configured MNO (country, network codes, min/max length). Available on any
 `fake()` instance:
 
 ```php
 $faker = fake();
 
-$faker->phoneNumberObject();        // PhoneNumber
-$faker->phoneNumber();              // "+255712345678" (alias of e164PhoneNumber)
-$faker->e164PhoneNumber();          // "+255712345678"
-$faker->nationalPhoneNumber();      // "0712 345 678"
-$faker->internationalPhoneNumber(); // "+255 712 345 678"
+$faker->msisdn();             // Msisdn value object
+$faker->msisdn()->e164();     // "+255712345678"
+$faker->msisdn()->national(); // "0712 345 678"
 ```
 
 Picks a random network code from `MNO::networkCodes()`, then randomises a subscriber portion sized within
@@ -316,7 +294,7 @@ Picks a random network code from `MNO::networkCodes()`, then randomises a subscr
 the result as valid. Throws `RuntimeException` if no valid number can be generated under the configured
 constraints.
 
-## PhoneNumberFormatResource
+## MsisdnFormatResource
 
 JSON API resource for exposing operator format configuration to frontends or external APIs:
 
@@ -374,8 +352,8 @@ config namespace (e.g., `config('mno.country')`).
 
 ## Exceptions
 
-- `InvalidPhoneNumberException` (extends `InvalidArgumentException`) — thrown by `PhoneNumber::from()` when parsing or
-  validation fails. Factory: `InvalidPhoneNumberException::forNumber(string $number, ?Throwable $previous = null)`.
+- `InvalidMsisdnException` (extends `InvalidArgumentException`) — thrown by `Msisdn::from()` when parsing or
+  validation fails. Factory: `InvalidMsisdnException::forNumber(string $number, ?Throwable $previous = null)`.
 - `InvalidCountryException` (extends `InvalidArgumentException`) — thrown by `Country::from()` for unknown ISO codes.
   Factory: `InvalidCountryException::unknownIsoCode(string $isoCode)`.
 - `InvalidCarrierException` (extends `InvalidArgumentException`) — thrown by `Carrier::from()` on carrier miss.
@@ -385,15 +363,13 @@ config namespace (e.g., `config('mno.country')`).
 
 ## Important Patterns
 
-- Always use `PhoneNumber::tryFrom()` for user-provided input, `PhoneNumber::from()` when the source is trusted.
-- Store phone numbers using `PhoneNumberCast` (or `PhoneNumber::class` directly) backed by a `$table->phoneNumber(...)`
-  (`unsigned bigInteger`) column. The cast persists as an integer — do not use `VARCHAR` or manually format on get/set.
+- Always use `Msisdn::tryFrom()` for user-provided input, `Msisdn::from()` when the source is trusted.
+- Store phone numbers using `MsisdnCast` (or `Msisdn::class` directly) backed by a
+  `$table->unsignedBigInteger(...)` column. The cast persists as an integer — do not use `VARCHAR` or manually format on get/set.
 - A configured `mno.country` is required for cast reads (the stored integer needs a default parse region) and for
   length inference (without it, `PhoneNumberLengthException` is thrown).
-- `Rule::phoneNumber()` is a macro registered by the service provider — equivalent to `PhoneNumberRule::default()`.
-- `Request::phoneNumber($key, $default)` is a macro registered by the service provider — extracts and parses a phone
+- `Rule::msisdn()` is a macro registered by the service provider — equivalent to `MsisdnRule::default()`.
+- `Request::msisdn($key, $default)` is a macro registered by the service provider — extracts and parses a phone
   number from the request.
-- `Blueprint::phoneNumber($column)` is a schema macro registered by the service provider — defines the
-  `unsigned bigInteger` column the cast expects.
-- `PhoneNumber` instances are immutable. There is no way to modify a parsed number; create a new one instead.
-- `PhoneNumber` implements `JsonSerializable` (serializes as E.164) and `Castable` (enables direct Eloquent casting).
+- `Msisdn` instances are immutable. There is no way to modify a parsed number; create a new one instead.
+- `Msisdn` implements `JsonSerializable` (serializes as E.164) and `Castable` (enables direct Eloquent casting).

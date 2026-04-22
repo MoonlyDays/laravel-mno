@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace MoonlyDays\MNO;
 
 use Faker\Generator as FakerGenerator;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use libphonenumber\PhoneNumberToCarrierMapper;
@@ -44,8 +42,6 @@ class MnoServiceProvider extends PackageServiceProvider
 
             return Msisdn::tryFrom($this->data($key)) ?: value($default);
         });
-
-        Blueprint::macro('msisdn', fn (string $column): ColumnDefinition => $this->unsignedBigInteger($column));
     }
 
     protected function configureLibphonenumberPackage(): void
