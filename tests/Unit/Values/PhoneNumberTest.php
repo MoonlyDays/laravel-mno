@@ -101,6 +101,55 @@ describe('PhoneNumber formatting', function (): void {
     });
 });
 
+describe('PhoneNumber::toInteger', function (): void {
+    it('returns an int', function (): void {
+        $phone = PhoneNumber::from(mobileExampleFor('TZ'));
+
+        expect($phone->toInteger())->toBeInt();
+    });
+
+    it('returns the E.164 digits without the leading plus', function (): void {
+        $e164 = mobileExampleFor('TZ');
+        $phone = PhoneNumber::from($e164);
+
+        expect((string) $phone->toInteger())->toBe(ltrim($e164, '+'));
+    });
+
+    it('produces equal ints for equal numbers', function (): void {
+        $e164 = mobileExampleFor('TZ');
+
+        expect(PhoneNumber::from($e164)->toInteger())
+            ->toBe(PhoneNumber::from($e164)->toInteger());
+    });
+
+    it('produces different ints for different numbers', function (): void {
+        $a = PhoneNumber::from(mobileExampleFor('TZ'));
+        $b = PhoneNumber::from(mobileExampleFor('GB'));
+
+        expect($a->toInteger())->not->toBe($b->toInteger());
+    });
+
+    it('preserves the country calling code in the leading digits', function (): void {
+        $phone = PhoneNumber::from(mobileExampleFor('TZ'));
+
+        expect((string) $phone->toInteger())->toStartWith((string) $phone->countryCode());
+    });
+
+    it('fits within PHP_INT_MAX on 64-bit platforms', function (): void {
+        // E.164 allows up to 15 digits (max ~10^15), well under PHP_INT_MAX
+        // on 64-bit systems (~9.2 * 10^18). Guard against silent overflow.
+        if (PHP_INT_SIZE < 8) {
+            $this->markTestSkipped('Requires 64-bit PHP.');
+        }
+
+        foreach (['TZ', 'GB', 'US', 'DE', 'JP'] as $region) {
+            $phone = PhoneNumber::from(mobileExampleFor($region));
+
+            expect($phone->toInteger())->toBeLessThan(PHP_INT_MAX);
+        }
+    });
+});
+
 describe('PhoneNumber decomposition', function (): void {
     it('exposes national number, network code and subscriber number', function (): void {
         $phone = PhoneNumber::from(mobileExampleFor('TZ'));
