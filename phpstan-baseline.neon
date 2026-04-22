@@ -1,0 +1,133 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Parameter \#2 \$second of method Illuminate\\Console\\View\\Components\\Factory\:\:twoColumnDetail\(\) expects string\|null, MoonlyDays\\MNO\\Values\\PhoneNumber\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Console/Commands/ShowCommand.php
+
+		-
+			message: '#^Parameter \#2 \$second of method Illuminate\\Console\\View\\Components\\Factory\:\:twoColumnDetail\(\) expects string\|null, int given\.$#'
+			identifier: argument.type
+			count: 5
+			path: src/Console/Commands/ShowCommand.php
+
+		-
+			message: '#^Parameter \#2 \$second of method Illuminate\\Console\\View\\Components\\Factory\:\:twoColumnDetail\(\) expects string\|null, int\<0, max\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Console/Commands/ShowCommand.php
+
+		-
+			message: '#^Method MoonlyDays\\MNO\\Resources\\PhoneNumberFormatResource\:\:make\(\) should return static\(MoonlyDays\\MNO\\Resources\\PhoneNumberFormatResource\) but returns MoonlyDays\\MNO\\Resources\\PhoneNumberFormatResource\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Resources/PhoneNumberFormatResource.php
+
+		-
+			message: '#^Dead catch \- MoonlyDays\\MNO\\Exceptions\\InvalidCountryException is never thrown in the try block\.$#'
+			identifier: catch.neverThrown
+			count: 1
+			path: src/Values/Carrier.php
+
+		-
+			message: '#^Access to an undefined property PHPUnit\\Framework\\TestCase\:\:\$blueprint\.$#'
+			identifier: property.notFound
+			count: 4
+			path: tests/Feature/BlueprintPhoneNumberMacroTest.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model@anonymous/tests/Feature/PhoneNumberCastTest\.php\:109\:\:\$phone\.$#'
+			identifier: property.notFound
+			count: 1
+			path: tests/Feature/PhoneNumberCastTest.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model@anonymous/tests/Feature/PhoneNumberCastTest\.php\:129\:\:\$phone\.$#'
+			identifier: property.notFound
+			count: 2
+			path: tests/Feature/PhoneNumberCastTest.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model@anonymous/tests/Feature/PhoneNumberCastTest\.php\:152\:\:\$phone\.$#'
+			identifier: property.notFound
+			count: 1
+			path: tests/Feature/PhoneNumberCastTest.php
+
+		-
+			message: '#^Cannot call method e164\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: tests/Feature/PhoneNumberCastTest.php
+
+		-
+			message: '#^Call to an undefined method Faker\\Generator\:\:internationalPhoneNumber\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/PhoneNumberFakerTest.php
+
+		-
+			message: '#^Call to an undefined method Faker\\Generator\:\:nationalPhoneNumber\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/PhoneNumberFakerTest.php
+
+		-
+			message: '#^Call to an undefined method Faker\\Generator\:\:phoneNumberObject\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/PhoneNumberFakerTest.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Validation\\Validator\:\:passes\(\)\.$#'
+			identifier: method.notFound
+			count: 8
+			path: tests/Feature/PhoneNumberRuleTest.php
+
+		-
+			message: '#^Call to an undefined static method Illuminate\\Validation\\Rule\:\:phoneNumber\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: tests/Feature/PhoneNumberRuleTest.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Http\\Request\:\:phoneNumber\(\)\.$#'
+			identifier: method.notFound
+			count: 10
+			path: tests/Feature/RequestPhoneNumberMacroTest.php
+
+		-
+			message: '#^Call to an undefined static method Illuminate\\Validation\\Rule\:\:phoneNumber\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: tests/Feature/ServiceProviderTest.php
+
+		-
+			message: '#^Instanceof between libphonenumber\\PhoneNumberDesc and libphonenumber\\PhoneNumberDesc will always evaluate to true\.$#'
+			identifier: instanceof.alwaysTrue
+			count: 1
+			path: tests/Unit/Enums/NumberTypeTest.php
+
+		-
+			message: '#^Parameter \#1 \.\.\.\$data of method Pest\\PendingCalls\\TestCall\:\:with\(\) expects array\<Closure\|iterable\<int\|string, mixed\>\|string\>\|Closure\|string, array\{MoonlyDays\\MNO\\Enums\\NumberType\:\:Mobile, MoonlyDays\\MNO\\Enums\\NumberType\:\:FixedLine, MoonlyDays\\MNO\\Enums\\NumberType\:\:General, MoonlyDays\\MNO\\Enums\\NumberType\:\:TollFree, MoonlyDays\\MNO\\Enums\\NumberType\:\:PremiumRate, MoonlyDays\\MNO\\Enums\\NumberType\:\:SharedCost, MoonlyDays\\MNO\\Enums\\NumberType\:\:Voip, MoonlyDays\\MNO\\Enums\\NumberType\:\:PersonalNumber, \.\.\.\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/Enums/NumberTypeTest.php
+
+		-
+			message: '#^Result of \|\| is always true\.$#'
+			identifier: booleanOr.alwaysTrue
+			count: 1
+			path: tests/Unit/Enums/NumberTypeTest.php
+
+		-
+			message: '#^Access to an undefined property PHPUnit\\Framework\\TestCase\:\:\$phone\.$#'
+			identifier: property.notFound
+			count: 7
+			path: tests/Unit/Values/PhoneNumberTest.php
+
+		-
+			message: '#^Call to an undefined method MoonlyDays\\MNO\\Values\\PhoneNumber\:\:shout\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Unit/Values/PhoneNumberTest.php

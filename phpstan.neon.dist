@@ -1,0 +1,15 @@
+includes:
+    - phpstan-baseline.neon
+
+parameters:
+    level: 5
+    paths:
+        - src
+        - tests
+
+    ignoreErrors:
+        # `data()` is protected on Illuminate\Http\Request, but macro closures are rebound
+        # to the Request instance at runtime, so the access is valid.
+        -
+            message: '#Call to protected method data\(\) of class Illuminate\\Http\\Request\.#'
+            path: src/MnoServiceProvider.php
