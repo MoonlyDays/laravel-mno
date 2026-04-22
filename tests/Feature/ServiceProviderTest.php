@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use libphonenumber\PhoneNumberToCarrierMapper;
@@ -33,4 +34,8 @@ it('registers the Rule::phoneNumber macro', function (): void {
 
 it('registers the Request::phoneNumber macro', function (): void {
     expect(Request::hasMacro('phoneNumber'))->toBeTrue();
+});
+
+it('registers the Blueprint::phoneNumber macro', function (): void {
+    expect(Blueprint::hasMacro('phoneNumber'))->toBeTrue();
 });
