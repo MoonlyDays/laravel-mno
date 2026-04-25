@@ -40,7 +40,7 @@ class Carrier implements Stringable
      */
     public static function from(Country|string $country, string $name): self
     {
-        if (is_string($country)) {
+        if (\is_string($country)) {
             $country = Country::from($country);
         }
 
@@ -105,7 +105,7 @@ class Carrier implements Stringable
      */
     public function networkCodeCount(): int
     {
-        return count($this->networkCodes);
+        return \count($this->networkCodes);
     }
 
     /**
@@ -138,7 +138,7 @@ class Carrier implements Stringable
      */
     public function owns(string $networkCode): bool
     {
-        return in_array($networkCode, $this->networkCodes, true);
+        return \in_array($networkCode, $this->networkCodes, true);
     }
 
     /**

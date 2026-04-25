@@ -34,7 +34,7 @@ class Msisdn implements Castable, JsonSerializable, Stringable
 
     public function __toString(): string
     {
-        return $this->e164();
+        return $this->toString();
     }
 
     /**
@@ -196,12 +196,17 @@ class Msisdn implements Castable, JsonSerializable, Stringable
         return $this->phoneNumber;
     }
 
+    public function toString(): string
+    {
+        return $this->e164();
+    }
+
     /**
      * Determine if two Msisdn instances represent the same number.
      */
     public function equals(self $other): bool
     {
-        return $this->e164() === $other->e164();
+        return $this->toString() === $other->toString();
     }
 
     /**
@@ -210,6 +215,6 @@ class Msisdn implements Castable, JsonSerializable, Stringable
      */
     public function jsonSerialize(): string
     {
-        return $this->e164();
+        return $this->toString();
     }
 }

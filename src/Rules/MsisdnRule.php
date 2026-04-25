@@ -34,7 +34,7 @@ class MsisdnRule implements ValidationRule
     public static function default(): self
     {
         if (static::$defaultResolver !== null) {
-            return call_user_func(static::$defaultResolver);
+            return \call_user_func(static::$defaultResolver);
         }
 
         return (new self())
@@ -96,7 +96,7 @@ class MsisdnRule implements ValidationRule
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (! is_string($value)) {
+        if (! \is_string($value)) {
             $fail('validation.msisdn.invalid')->translate();
 
             return;

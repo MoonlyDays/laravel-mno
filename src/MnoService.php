@@ -71,7 +71,7 @@ class MnoService
             $name = $this->carrierName();
         }
 
-        if (is_null($name)) {
+        if ($name === null) {
             throw InvalidCarrierException::missingArguments();
         }
 

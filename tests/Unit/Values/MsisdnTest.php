@@ -209,6 +209,25 @@ describe('Msisdn decomposition', function (): void {
     });
 });
 
+describe('Msisdn serialization', function (): void {
+    beforeEach(function (): void {
+        $this->e164 = mobileExampleFor('TZ');
+        $this->phone = Msisdn::from($this->e164);
+    });
+
+    it('toString returns the E.164 form', function (): void {
+        expect($this->phone->toString())->toBe($this->e164);
+    });
+
+    it('jsonSerialize returns the E.164 form', function (): void {
+        expect($this->phone->jsonSerialize())->toBe($this->e164);
+    });
+
+    it('json_encode produces a JSON string of the E.164 form', function (): void {
+        expect(json_encode($this->phone))->toBe(json_encode($this->e164));
+    });
+});
+
 describe('Msisdn::equals', function (): void {
     it('returns true for two instances with the same E.164 value', function (): void {
         $e164 = mobileExampleFor('TZ');
