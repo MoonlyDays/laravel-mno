@@ -61,11 +61,11 @@ class CarrierDataRepository
     {
         $key = $language.':'.$countryCode;
 
-        if (array_key_exists($key, self::$cache)) {
+        if (\array_key_exists($key, self::$cache)) {
             return self::$cache[$key];
         }
 
-        $className = sprintf(
+        $className = \sprintf(
             'libphonenumber\\carrier\\data\\%s\\%s_%d',
             $language,
             ucfirst($language),

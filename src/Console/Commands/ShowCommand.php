@@ -25,8 +25,8 @@ class ShowCommand extends Command
         $carrierName = $this->argument('carrier');
 
         return match (true) {
-            is_null($countryIsoCode) => $this->showCarrier(MNO::carrier()),
-            is_null($carrierName) => $this->showCountry(MNO::country($countryIsoCode)),
+            $countryIsoCode === null => $this->showCarrier(MNO::carrier()),
+            $carrierName === null => $this->showCountry(MNO::country($countryIsoCode)),
             default => $this->showCarrier(MNO::carrier($countryIsoCode, $carrierName)),
         };
     }
@@ -37,7 +37,7 @@ class ShowCommand extends Command
 
         $this->components->twoColumnDetail('ISO Code', $country->isoCode());
         $this->components->twoColumnDetail('Name', $country->name());
-        $this->components->twoColumnDetail('Carrier Count', count($country->carriers()));
+        $this->components->twoColumnDetail('Carrier Count', \count($country->carriers()));
         $this->components->twoColumnDetail('Country Code', '+'.$country->countryCode());
         $this->components->twoColumnDetail('Mobile Network Portability', $country->isMobileNumberPortable() ? '<fg=green>true</>' : '<fg=red>false</>');
         $this->components->twoColumnDetail('Timezones', $this->summarizeList($country->timezones()));
@@ -103,12 +103,12 @@ class ShowCommand extends Command
             return '<fg=gray>none</>';
         }
 
-        $remaining = count($items) - $limit;
+        $remaining = \count($items) - $limit;
         if ($remaining <= 0) {
             return Arr::join($items, ', ', ' and ');
         }
 
-        $visible = array_slice($items, 0, $limit);
+        $visible = \array_slice($items, 0, $limit);
 
         return implode(', ', $visible).' and <fg=gray>'.$remaining.' more</>';
     }

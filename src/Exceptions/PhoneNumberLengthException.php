@@ -22,7 +22,7 @@ final class PhoneNumberLengthException extends RuntimeException
     public static function missingMetadata(string $country): self
     {
         return new self(
-            sprintf('Cannot infer phone number length for country [%s]: no libphonenumber metadata available.', $country),
+            \sprintf('Cannot infer phone number length for country [%s]: no libphonenumber metadata available.', $country),
         );
     }
 
@@ -34,7 +34,7 @@ final class PhoneNumberLengthException extends RuntimeException
     public static function undefined(string $country): self
     {
         return new self(
-            sprintf('Could not infer possible phone number lengths for country [%s]: libphonenumber metadata did not expose any usable lengths.', $country),
+            \sprintf('Could not infer possible phone number lengths for country [%s]: libphonenumber metadata did not expose any usable lengths.', $country),
         );
     }
 }

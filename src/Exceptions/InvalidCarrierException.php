@@ -20,7 +20,7 @@ final class InvalidCarrierException extends InvalidArgumentException
 
     public static function notFoundIn(Country $country, string $name): self
     {
-        return new self(sprintf(
+        return new self(\sprintf(
             'Carrier "%s" was not found in %s.',
             $name,
             $country->isoCode(),

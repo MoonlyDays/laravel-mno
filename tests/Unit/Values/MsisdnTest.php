@@ -209,6 +209,37 @@ describe('Msisdn decomposition', function (): void {
     });
 });
 
+describe('Msisdn serialization', function (): void {
+    beforeEach(function (): void {
+        $this->e164 = mobileExampleFor('TZ');
+        $this->phone = Msisdn::from($this->e164);
+    });
+
+    it('toString returns the E.164 form', function (): void {
+        expect($this->phone->toString())->toBe($this->e164);
+    });
+
+    it('value returns the E.164 form', function (): void {
+        expect($this->phone->value())->toBe($this->e164);
+    });
+
+    it('jsonSerialize returns the E.164 form', function (): void {
+        expect($this->phone->jsonSerialize())->toBe($this->e164);
+    });
+
+    it('toJson returns a JSON-encoded E.164 string', function (): void {
+        expect($this->phone->toJson())->toBe(json_encode($this->e164));
+    });
+
+    it('toArray returns the E.164 form', function (): void {
+        expect($this->phone->toArray())->toBe($this->e164);
+    });
+
+    it('json_encode produces the same output as toJson', function (): void {
+        expect(json_encode($this->phone))->toBe($this->phone->toJson());
+    });
+});
+
 describe('Msisdn::equals', function (): void {
     it('returns true for two instances with the same E.164 value', function (): void {
         $e164 = mobileExampleFor('TZ');
