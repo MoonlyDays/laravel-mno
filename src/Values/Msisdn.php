@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace MoonlyDays\MNO\Values;
 
 use Illuminate\Contracts\Database\Eloquent\Castable;
-use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Contracts\Support\Jsonable;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
 use Illuminate\Support\Traits\Tappable;
@@ -21,7 +19,7 @@ use MoonlyDays\MNO\Exceptions\InvalidMsisdnException;
 use MoonlyDays\MNO\Facades\MNO;
 use Stringable;
 
-class Msisdn implements Arrayable, Castable, Jsonable, JsonSerializable, Stringable
+class Msisdn implements Castable, JsonSerializable, Stringable
 {
     use Macroable;
     use Tappable;
@@ -198,24 +196,9 @@ class Msisdn implements Arrayable, Castable, Jsonable, JsonSerializable, Stringa
         return $this->phoneNumber;
     }
 
-    /**
-     * Converts the object to its string representation in the E.164 format.
-     *
-     * @return string The E.164 formatted string representation of the object.
-     */
     public function toString(): string
     {
         return $this->e164();
-    }
-
-    /**
-     * Retrieves the string representation of the current object.
-     *
-     * @return string The string value of the object.
-     */
-    public function value(): string
-    {
-        return $this->toString();
     }
 
     /**
@@ -223,7 +206,7 @@ class Msisdn implements Arrayable, Castable, Jsonable, JsonSerializable, Stringa
      */
     public function equals(self $other): bool
     {
-        return $this->value() === $other->value();
+        return $this->toString() === $other->toString();
     }
 
     /**
@@ -232,16 +215,6 @@ class Msisdn implements Arrayable, Castable, Jsonable, JsonSerializable, Stringa
      */
     public function jsonSerialize(): string
     {
-        return $this->value();
-    }
-
-    public function toJson($options = 0): string
-    {
-        return $this->jsonSerialize();
-    }
-
-    public function toArray(): string
-    {
-        return $this->value();
+        return $this->toString();
     }
 }

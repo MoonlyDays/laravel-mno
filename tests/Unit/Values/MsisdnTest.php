@@ -219,24 +219,12 @@ describe('Msisdn serialization', function (): void {
         expect($this->phone->toString())->toBe($this->e164);
     });
 
-    it('value returns the E.164 form', function (): void {
-        expect($this->phone->value())->toBe($this->e164);
-    });
-
     it('jsonSerialize returns the E.164 form', function (): void {
         expect($this->phone->jsonSerialize())->toBe($this->e164);
     });
 
-    it('toJson returns a JSON-encoded E.164 string', function (): void {
-        expect($this->phone->toJson())->toBe(json_encode($this->e164));
-    });
-
-    it('toArray returns the E.164 form', function (): void {
-        expect($this->phone->toArray())->toBe($this->e164);
-    });
-
-    it('json_encode produces the same output as toJson', function (): void {
-        expect(json_encode($this->phone))->toBe($this->phone->toJson());
+    it('json_encode produces a JSON string of the E.164 form', function (): void {
+        expect(json_encode($this->phone))->toBe(json_encode($this->e164));
     });
 });
 
